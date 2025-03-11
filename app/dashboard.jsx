@@ -11,7 +11,7 @@ import BIO from '../assets/images/BIO.png';
 import CS from '../assets/images/CS.png';
 import STORM from '../assets/images/STORM.png';
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
 const categories = [
   { name: "Circuits", image: IT },
@@ -52,19 +52,14 @@ const sections = [
 const App = () => {
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <LinearGradient colors={['#ffffff', '#f0f0f0']} style={styles.header}>
+      <LinearGradient colors={['#8E54E9','#4776E6']} style={styles.header}>
         <Image source={cscLogo} style={styles.logo} />
-        <View>
-          <Text style={styles.title}>E-Merch</Text>
-          <Text style={styles.subtitle}>NAOM</Text>
-        </View>
+        <Text style={styles.title}>E-Merch</Text>
         <TouchableOpacity>
-          <Ionicons name="search" size={26} color="#333" />
+          <Ionicons name="search" size={26} color="#fff" />
         </TouchableOpacity>
       </LinearGradient>
 
-      {/* Categories */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
         {categories.map((category, index) => (
           <TouchableOpacity key={index} style={styles.category}>
@@ -74,7 +69,6 @@ const App = () => {
         ))}
       </ScrollView>
 
-      {/* Sections */}
       <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
         {sections.map((section, idx) => (
           <View key={idx} style={styles.section}>
@@ -90,16 +84,15 @@ const App = () => {
                   <Image source={{ uri: item.image }} style={styles.cardImage} />
                   <Text style={styles.cardTitle}>{item.title}</Text>
                   <Text style={styles.cardDescription}>{item.description}</Text>
-                  <Text style={styles.cardPrice}>{item.price}</Text>
+                  <Text style={styles.itemPrice}>{item.price}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
           </View>
         ))}
       </ScrollView>
-
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
+           {/* Bottom Navigation */}
+           <View style={styles.bottomNav}>
         <TouchableOpacity style={styles.navItem}>
           <Ionicons name="home" size={28} color="#333" />
           <Text style={styles.navText}>Home</Text>
@@ -124,43 +117,35 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f8f8f8',
-    paddingHorizontal: 16,
+    backgroundColor: '#f0f4f7',
   },
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    justifyContent: 'space-between',
     padding: 16,
-    borderRadius: 10,
-    marginBottom: 16,
-    elevation: 2,
+    borderBottomLeftRadius: 20,
+    borderBottomRightRadius: 20,
+    elevation: 3,
   },
   logo: {
-    width: 50,
-    height: 50,
-    marginRight: 12,
+    width: 40,
+    height: 40,
   },
   title: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 14,
-    color: '#777',
+    color: '#fff',
   },
   categoryContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
     paddingVertical: 10,
   },
   category: {
     alignItems: 'center',
     backgroundColor: '#fff',
-    padding: 20,
-    borderRadius: 10,
-    marginRight: 12,
+    padding: 15,
+    borderRadius: 12,
+    marginHorizontal: 8,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
@@ -168,9 +153,9 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   categoryImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
   },
   categoryText: {
     fontSize: 14,
@@ -179,12 +164,12 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   section: {
-    marginBottom: 20,
+    marginVertical: 10,
+    paddingHorizontal: 10,
   },
   sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
     marginBottom: 10,
   },
   sectionTitle: {
@@ -201,33 +186,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 12,
     borderRadius: 12,
-    marginRight: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
+    marginHorizontal: 6,
     elevation: 3,
   },
   cardImage: {
     width: '100%',
     height: 100,
     borderRadius: 10,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginTop: 6,
-    color: '#333',
-  },
-  cardDescription: {
-    fontSize: 13,
-    color: '#777',
-  },
-  cardPrice: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: '#ff6b6b',
-    marginTop: 4,
   },
   bottomNav: {
     flexDirection: 'row',
