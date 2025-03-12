@@ -98,10 +98,6 @@ const App = () => {
           <Text style={styles.navText}>Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="heart" size={28} color="#333" />
-          <Text style={styles.navText}>Favorites</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
           <Ionicons name="cart" size={28} color="#333" />
           <Text style={styles.navText}>Cart</Text>
         </TouchableOpacity>
