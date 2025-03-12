@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, ImageBackground, Pressable, TextInput, Image, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Link } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import backgroundPattern from '@/assets/images/background.png';
 import cscLogo from '@/assets/images/logo.png';
@@ -10,6 +10,7 @@ const App = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
@@ -43,7 +44,7 @@ const App = () => {
             </TouchableOpacity>
           </View>
           
-          <Pressable style={styles.loginButton}>
+          <Pressable style={styles.loginButton} onPress={() => router.push('/dashboard') }>
             <Text style={styles.loginText}>LOGIN</Text>
           </Pressable>
           
@@ -58,7 +59,7 @@ const App = () => {
             </TouchableOpacity>
           </View>
           
-          <Text style={styles.signUpText}>New to CS Merch? <Link href="signup" style={styles.signUpLink} >Sign up</Link></Text>
+          <Text style={styles.signUpText}>New to CS Merch? <Text onPress={() => router.push('/signup')} style={styles.signUpLink}>Sign up</Text></Text>
         </View>
       </ImageBackground>
     </View>
