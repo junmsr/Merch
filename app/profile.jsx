@@ -23,6 +23,7 @@ const ProfileScreen = () => {
   const [activeTab, setActiveTab] = useState('profile');
   const [modalVisible, setModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState('');
+  const [accountSettingsModalVisible, setAccountSettingsModalVisible] = useState(false);
 
   useEffect(() => {
     Animated.timing(profileCardAnimation, {
@@ -66,12 +67,14 @@ const ProfileScreen = () => {
             <Image source={SampleProductImage} style={styles.productImage} />
             <Text style={styles.productName}>Sample Product</Text>
             <Text style={styles.productDescription}>This is a sample product description for the "To Pay" section.</Text>
-            <TouchableOpacity style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Pay Now</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Cancel Order</Text>
-            </TouchableOpacity>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Pay Now</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Cancel Order</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         );
         break;
@@ -81,12 +84,14 @@ const ProfileScreen = () => {
             <Image source={SampleProductImage} style={styles.productImage} />
             <Text style={styles.productName}>Sample Product</Text>
             <Text style={styles.productDescription}>This is a sample product description for the "To Ship" section.</Text>
-            <TouchableOpacity style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Track Order</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Contact Seller</Text>
-            </TouchableOpacity>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Track Order</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Contact Seller</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         );
         break;
@@ -96,12 +101,14 @@ const ProfileScreen = () => {
             <Image source={SampleProductImage} style={styles.productImage} />
             <Text style={styles.productName}>Sample Product</Text>
             <Text style={styles.productDescription}>This is a sample product description for the "To Receive" section.</Text>
-            <TouchableOpacity style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Confirm Receipt</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Report Issue</Text>
-            </TouchableOpacity>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Confirm Receipt</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Report Issue</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         );
         break;
@@ -111,12 +118,14 @@ const ProfileScreen = () => {
             <Image source={SampleProductImage} style={styles.productImage} />
             <Text style={styles.productName}>Sample Product</Text>
             <Text style={styles.productDescription}>This is a sample product description for the "To Rate" section.</Text>
-            <TouchableOpacity style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Rate Product</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.modalButton}>
-              <Text style={styles.modalButtonText}>Write Review</Text>
-            </TouchableOpacity>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Rate Product</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Write Review</Text>
+              </TouchableOpacity>
+            </View>
           </View>
         );
         break;
@@ -125,6 +134,14 @@ const ProfileScreen = () => {
     }
     setModalContent(content);
     setModalVisible(true);
+  };
+
+  const openAccountSettingsModal = () => {
+    setAccountSettingsModalVisible(true);
+  };
+
+  const handleLogout = () => {
+    router.push('/');
   };
 
   return (
@@ -189,7 +206,7 @@ const ProfileScreen = () => {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Account Options</Text>
-          <TouchableOpacity style={styles.option}>
+          <TouchableOpacity style={styles.option} onPress={openAccountSettingsModal}>
             <Ionicons name="settings" size={24} color="#8E54E9" />
             <Text style={styles.optionText}>Account Settings</Text>
           </TouchableOpacity>
@@ -197,9 +214,13 @@ const ProfileScreen = () => {
             <Ionicons name="help-circle" size={24} color="#8E54E9" />
             <Text style={styles.optionText}>Help Center</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.option}>
+          <TouchableOpacity style={styles.option} onPress={handleLogout}>
             <Ionicons name="log-out" size={24} color="#8E54E9" />
             <Text style={styles.optionText}>Logout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.option} onPress={() => router.push('/cart')}>
+            <Ionicons name="cart" size={24} color="#8E54E9" />
+            <Text style={styles.optionText}>Go to Cart</Text>
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -249,6 +270,38 @@ const ProfileScreen = () => {
               <Pressable
                 style={[styles.button, styles.buttonClose]}
                 onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.textStyle}>Close</Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={accountSettingsModalVisible}
+        onRequestClose={() => setAccountSettingsModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalText}>Account Settings</Text>
+            <View style={styles.modalButtons}>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Change Password</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Update Email</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.modalButton}>
+                <Text style={styles.modalButtonText}>Manage Notifications</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalButtons}>
+              <Pressable
+                style={[styles.button, styles.buttonClose]}
+                onPress={() => setAccountSettingsModalVisible(false)}
               >
                 <Text style={styles.textStyle}>Close</Text>
               </Pressable>
@@ -325,11 +378,10 @@ const styles = StyleSheet.create({
   modalButton: {
     flex: 1,
     backgroundColor: '#8E54E9',
-    paddingVertical: 10,
+    paddingVertical: 12,
     borderRadius: 10,
     marginHorizontal: 5,
     alignItems: 'center',
-    maxWidth: '45%', // Ensure buttons do not exceed 45% of the modal width
   },
   modalButtonText: {
     color: 'white',
@@ -360,7 +412,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   modalContent: {
-    width: 300,
+    width: '80%',
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 20,
@@ -372,10 +424,17 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   modalText: {
-    marginBottom: 15,
+    marginBottom: 20,
     textAlign: 'center',
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    width: '100%',
   },
   button: {
     borderRadius: 10,
@@ -384,17 +443,13 @@ const styles = StyleSheet.create({
   },
   buttonClose: {
     backgroundColor: '#8E54E9',
+    marginTop: 20,
+    width: '100%',
   },
   textStyle: {
     color: 'white',
     fontWeight: 'bold',
     textAlign: 'center',
-  },
-  modalButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: 20,
-    width: '100%',
   },
 });
 
