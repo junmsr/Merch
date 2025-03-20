@@ -1,96 +1,97 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, ImageBackground, Image, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
-import cscLogo from '../assets/images/logo.png';
-import IT from '../assets/images/IT.png';
-import CHEM from '../assets/images/CHEM.png';
-import LOGO from '../assets/images/logo.png';
-import BIO from '../assets/images/BIO.png';
-import CS from '../assets/images/CS.png';
-import STORM from '../assets/images/STORM.png';
+import backgroundImage from '../assets/images/background.png'; // Replace with your background image path
+import logoImage from '../assets/images/logo.png'; // Replace with your logo image path
 
-const { width } = Dimensions.get('window');
-
-const categories = [
-  { name: "Circuits", image: IT },
-  { name: "Chess", image: CHEM },
-  { name: "CSC", image: LOGO },
-  { name: "Symbiosis", image: BIO },
-  { name: "Access", image: CS },
-  { name: "STORM", image: STORM },
-];
-
-const sections = [
-  {
-    title: "Shirt",
-    items: [
-      { title: "CSC Shirt", description: "Premium cotton fabric", price: "₱499", image: "https://via.placeholder.com/120x80" },
-      { title: "Tech Shirt", description: "Comfort fit with logo", price: "₱599", image: "https://via.placeholder.com/120x80" },
-      { title: "Black Shirt", description: "Minimalist style", price: "₱450", image: "https://via.placeholder.com/120x80" },
-    ],
-  },
-];
-
-const DashboardScreen = () => {
+const LoginScreen = () => {
   const router = useRouter();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [passwordVisible, setPasswordVisible] = useState(false);
+
+  const handleLogin = () => {
+    // Add login logic here
+    router.push('/dashboard'); // Navigate to the dashboard after login
+  };
 
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#8E54E9','#4776E6']} style={styles.header}>
-        <Image source={cscLogo} style={styles.logo} />
-        <Text style={styles.title}>E-Merch</Text>
-        <TouchableOpacity>
-          <Ionicons name="search" size={26} color="#fff" />
-        </TouchableOpacity>
-      </LinearGradient>
+      <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
+        <LinearGradient colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.6)']} style={styles.overlay}>
+          <Image source={logoImage} style={styles.logo} />
+          <View style={styles.formContainer}>
+            <Text style={styles.title}>College of Science</Text>
+            <Text style={styles.subtitle}>Log in to continue</Text>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
-        {categories.map((category, index) => (
-          <TouchableOpacity key={index} style={styles.category}>
-            <Image source={category.image} style={styles.categoryImage} />
-            <Text style={styles.categoryText}>{category.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+            <View style={styles.form}>
+              {/* Email Input */}
+              <View style={styles.inputContainer}>
+                <Ionicons name="mail" size={20} color="#888" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Email"
+                  placeholderTextColor="#aaa"
+                  value={email}
+                  onChangeText={setEmail}
+                />
+              </View>
 
-      <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
-        {sections.map((section, idx) => (
-          <View key={idx} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-            </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {section.items.map((item, i) => (
-                <TouchableOpacity key={i} style={styles.card}>
-                  <Image source={{ uri: item.image }} style={styles.cardImage} />
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardDescription}>{item.description}</Text>
-                  <Text style={styles.itemPrice}>{item.price}</Text>
+              {/* Password Input */}
+              <View style={styles.inputContainer}>
+                <Ionicons name="lock-closed" size={20} color="#888" style={styles.inputIcon} />
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  placeholderTextColor="#aaa"
+                  secureTextEntry={!passwordVisible}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity
+                  style={styles.eyeIcon}
+                  onPress={() => setPasswordVisible(!passwordVisible)}
+                >
+                  <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="#888" />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-        ))}
-      </ScrollView>
+              </View>
 
-      {/* Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="home" size={28} color="#333" />
-          <Text style={styles.navText}>Home</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="cart" size={28} color="#333" />
-          <Text style={styles.navText}>Cart</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/profile')}>
-          <Ionicons name="person" size={28} color="#333" />
-          <Text style={styles.navText}>Profile</Text>
-        </TouchableOpacity>
-      </View>
+              {/* Login Button */}
+              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+                <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.loginGradient}>
+                  <Text style={styles.loginText}>LOGIN</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.divider}>
+                <Text style={styles.dividerText}>OR</Text>
+              </View>
+
+              {/* Social Login */}
+              <View style={styles.socialLoginContainer}>
+                <TouchableOpacity>
+                  <Image source={require('../assets/images/facebook.png')} style={styles.socialIcon} />
+                </TouchableOpacity>
+                <TouchableOpacity>
+                  <Image source={require('../assets/images/google.png')} style={styles.socialIcon} />
+                </TouchableOpacity>
+              </View>
+
+              {/* Sign-Up Link */}
+              <Text style={styles.signUpText}>
+                New to CS Merch?{' '}
+                <Text style={styles.signUpLink} onPress={() => router.push('/signup')}>
+                  Sign up
+                </Text>
+              </Text>
+            </View>
+          </View>
+        </LinearGradient>
+      </ImageBackground>
     </View>
   );
 };
@@ -98,102 +99,123 @@ const DashboardScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f4f7',
   },
-  header: {
-    flexDirection: 'row',
+  backgroundImage: {
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderBottomLeftRadius: 20,
-    borderBottomRightRadius: 20,
-    elevation: 3,
+    paddingHorizontal: 20,
   },
   logo: {
-    width: 40,
-    height: 40,
+    width: 150,
+    height: 150,
+    marginBottom: 40,
+  },
+  formContainer: {
+    width: '100%',
+    maxWidth: 400,
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 30,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
+    alignItems: 'center',
   },
   title: {
-    fontSize: 20,
+    fontSize: 28,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#333',
+    marginBottom: 10,
   },
-  categoryContainer: {
-    paddingVertical: 10,
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 30,
   },
-  category: {
+  form: {
+    width: '100%',
+  },
+  inputContainer: {
+    flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 12,
-    marginHorizontal: 8,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 10,
+    marginBottom: 20,
     shadowColor: '#000',
-    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
-  categoryImage: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+  inputIcon: {
+    marginRight: 10,
   },
-  categoryText: {
-    fontSize: 14,
-    marginTop: 6,
-    fontWeight: 'bold',
+  input: {
+    flex: 1,
+    fontSize: 16,
     color: '#333',
   },
-  section: {
-    marginVertical: 10,
-    paddingHorizontal: 10,
+  eyeIcon: {
+    marginLeft: 10,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-  },
-  viewAll: {
-    fontSize: 14,
-    color: '#ff6b6b',
-  },
-  card: {
-    width: width * 0.4,
-    backgroundColor: 'white',
-    padding: 12,
-    borderRadius: 12,
-    marginHorizontal: 6,
-    elevation: 3,
-  },
-  cardImage: {
-    width: '100%',
-    height: 100,
+  loginButton: {
+    marginTop: 20,
     borderRadius: 10,
+    overflow: 'hidden',
   },
-  bottomNav: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-    backgroundColor: 'white',
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    borderTopWidth: 1,
-    borderTopColor: '#ddd',
-  },
-  navItem: {
+  loginGradient: {
+    paddingVertical: 15,
     alignItems: 'center',
   },
-  navText: {
-    fontSize: 12,
-    marginTop: 2,
+  loginText: {
+    color: '#fff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  divider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  dividerText: {
+    position: 'absolute',
+    backgroundColor: 'white',
+    paddingHorizontal: 10,
+    color: '#888',
+    fontSize: 14,
+  },
+  socialLoginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    width: '60%',
+    marginBottom: 20,
+  },
+  socialIcon: {
+    width: 40,
+    height: 40,
+  },
+  signUpText: {
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  signUpLink: {
+    color: '#8E54E9',
+    fontWeight: 'bold',
   },
 });
 
-export default DashboardScreen;
+export default LoginScreen;
