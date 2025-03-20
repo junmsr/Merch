@@ -1,7 +1,8 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, TextInput, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 
 import cscLogo from '../assets/images/logo.png';
 import IT from '../assets/images/IT.png';
@@ -49,33 +50,96 @@ const sections = [
   },
 ];
 
-const App = () => {
+const DashboardScreen = () => {
+  const router = useRouter();
+
+  // Animation references for each tab
+  const scaleHome = useRef(new Animated.Value(1)).current;
+  const scaleCart = useRef(new Animated.Value(1)).current;
+  const scaleProfile = useRef(new Animated.Value(1)).current;
+
+  const opacityHome = useRef(new Animated.Value(1)).current;
+  const opacityCart = useRef(new Animated.Value(0.5)).current;
+  const opacityProfile = useRef(new Animated.Value(0.5)).current;
+
+  const [activeTab, setActiveTab] = useState('home');
+
+  const handlePress = (scaleRef, opacityRef, route, tabName) => {
+    // Reset all opacities
+    Animated.timing(opacityHome, { toValue: 0.5, duration: 200, useNativeDriver: true }).start();
+    Animated.timing(opacityCart, { toValue: 0.5, duration: 200, useNativeDriver: true }).start();
+    Animated.timing(opacityProfile, { toValue: 0.5, duration: 200, useNativeDriver: true }).start();
+
+    // Animate the selected tab
+    Animated.sequence([
+      Animated.timing(scaleRef, {
+        toValue: 1.2,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleRef, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    Animated.timing(opacityRef, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+
+    // Set the active tab
+    setActiveTab(tabName);
+
+    // Navigate to the route after animation
+    if (route) router.push(route);
+  };
+
   return (
     <View style={styles.container}>
-      <LinearGradient colors={['#8E54E9','#4776E6']} style={styles.header}>
-        <Image source={cscLogo} style={styles.logo} />
-        <Text style={styles.title}>E-Merch</Text>
-        <TouchableOpacity>
-          <Ionicons name="search" size={26} color="#fff" />
-        </TouchableOpacity>
+      {/* Header */}
+      <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.header}>
+        <View style={styles.headerContent}>
+          <Image source={cscLogo} style={styles.logo} />
+          <Text style={styles.title}>E-Merch</Text>
+        </View>
+        <View style={styles.searchContainer}>
+          <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
+          <TextInput placeholder="Search products..." style={styles.searchInput} />
+        </View>
       </LinearGradient>
 
+      {/* Categories */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
         {categories.map((category, index) => (
-          <TouchableOpacity key={index} style={styles.category}>
-            <Image source={category.image} style={styles.categoryImage} />
+          <TouchableOpacity
+            key={index}
+            style={styles.category}
+            activeOpacity={0.8}
+            onPress={() => {
+              const bounce = new Animated.Value(1);
+              Animated.sequence([
+                Animated.timing(bounce, { toValue: 1.2, duration: 100, useNativeDriver: true }),
+                Animated.timing(bounce, { toValue: 1, duration: 100, useNativeDriver: true }),
+              ]).start();
+            }}
+          >
+            <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.categoryGradient}>
+              <Image source={category.image} style={styles.categoryImage} />
+            </LinearGradient>
             <Text style={styles.categoryText}>{category.name}</Text>
           </TouchableOpacity>
         ))}
       </ScrollView>
 
+      {/* Sections */}
       <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
         {sections.map((section, idx) => (
           <View key={idx} style={styles.section}>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{section.title}</Text>
               <TouchableOpacity>
-                <Text style={styles.viewAll}>View All</Text>
+                <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.viewAllButton}>
+                  <Text style={styles.viewAllText}>View All</Text>
+                </LinearGradient>
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -91,19 +155,37 @@ const App = () => {
           </View>
         ))}
       </ScrollView>
-           {/* Bottom Navigation */}
-           <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="home" size={28} color="#333" />
-          <Text style={styles.navText}>Home</Text>
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleHome, opacityHome, '/dashboard', 'home')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleHome }] }}>
+            <Ionicons name="home" size={28} color={activeTab === 'home' ? '#8E54E9' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityHome }]}>Home</Animated.Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="cart" size={28} color="#333" />
-          <Text style={styles.navText}>Cart</Text>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleCart, opacityCart, '/cart', 'cart')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleCart }] }}>
+            <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#8E54E9' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityCart }]}>Cart</Animated.Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person" size={28} color="#333" />
-          <Text style={styles.navText}>Profile</Text>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleProfile, opacityProfile, '/profile', 'profile')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleProfile }] }}>
+            <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#8E54E9' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityProfile }]}>Profile</Animated.Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -116,42 +198,70 @@ const styles = StyleSheet.create({
     backgroundColor: '#f0f4f7',
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     padding: 16,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     elevation: 3,
   },
+  headerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
   logo: {
-    width: 40,
-    height: 40,
+    width: 50,
+    height: 50,
+    marginRight: 10,
+    borderRadius: 25, // Optional for rounded logo
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  searchIcon: {
+    marginRight: 5,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    color: '#333',
   },
   categoryContainer: {
     paddingVertical: 10,
   },
   category: {
     alignItems: 'center',
-    backgroundColor: '#fff',
-    padding: 15,
-    borderRadius: 12,
     marginHorizontal: 8,
+  },
+  categoryGradient: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
     shadowColor: '#000',
-    shadowOpacity: 0.1,
     shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   categoryImage: {
     width: 50,
     height: 50,
-    borderRadius: 25,
   },
   categoryText: {
     fontSize: 14,
@@ -173,9 +283,14 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
   },
-  viewAll: {
+  viewAllButton: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+  },
+  viewAllText: {
     fontSize: 14,
-    color: '#ff6b6b',
+    color: '#fff',
   },
   card: {
     width: width * 0.4,
@@ -189,6 +304,22 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 100,
     borderRadius: 10,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginTop: 5,
+    color: '#333',
+  },
+  cardDescription: {
+    fontSize: 12,
+    color: '#666',
+    marginVertical: 5,
+  },
+  itemPrice: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#8E54E9',
   },
   bottomNav: {
     flexDirection: 'row',
@@ -208,7 +339,8 @@ const styles = StyleSheet.create({
   navText: {
     fontSize: 12,
     marginTop: 2,
+    color: '#333',
   },
 });
 
-export default App;
+export default DashboardScreen;
