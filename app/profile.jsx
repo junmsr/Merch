@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
@@ -9,6 +9,46 @@ import ProfileImage from '../assets/images/Junmar.png'; // Adjust the path if ne
 
 const ProfileScreen = () => {
   const router = useRouter();
+
+  // Animation references for each tab
+  const scaleHome = useRef(new Animated.Value(1)).current;
+  const scaleCart = useRef(new Animated.Value(1)).current;
+  const scaleProfile = useRef(new Animated.Value(1)).current;
+
+  const opacityHome = useRef(new Animated.Value(1)).current;
+  const opacityCart = useRef(new Animated.Value(0.5)).current;
+  const opacityProfile = useRef(new Animated.Value(1)).current;
+
+  const [activeTab, setActiveTab] = useState('profile');
+
+  const handlePress = (scaleRef, opacityRef, route, tabName) => {
+    // Reset all opacities
+    Animated.timing(opacityHome, { toValue: 0.5, duration: 200, useNativeDriver: true }).start();
+    Animated.timing(opacityCart, { toValue: 0.5, duration: 200, useNativeDriver: true }).start();
+    Animated.timing(opacityProfile, { toValue: 0.5, duration: 200, useNativeDriver: true }).start();
+
+    // Animate the selected tab
+    Animated.sequence([
+      Animated.timing(scaleRef, {
+        toValue: 1.2,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(scaleRef, {
+        toValue: 1,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    Animated.timing(opacityRef, { toValue: 1, duration: 200, useNativeDriver: true }).start();
+
+    // Set the active tab
+    setActiveTab(tabName);
+
+    // Navigate to the route after animation
+    if (route) router.push(route);
+  };
 
   return (
     <View style={styles.container}>
@@ -71,17 +111,34 @@ const ProfileScreen = () => {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/dashboard')}>
-          <Ionicons name="home" size={28} color="#8E54E9" />
-          <Text style={styles.navText}>Home</Text>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleHome, opacityHome, '/dashboard', 'home')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleHome }] }}>
+            <Ionicons name="home" size={28} color={activeTab === 'home' ? '#8E54E9' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityHome }]}>Home</Animated.Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="cart" size={28} color="#8E54E9" />
-          <Text style={styles.navText}>Cart</Text>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleCart, opacityCart, '/cart', 'cart')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleCart }] }}>
+            <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#8E54E9' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityCart }]}>Cart</Animated.Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person" size={28} color="#8E54E9" />
-          <Text style={styles.navText}>Profile</Text>
+
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleProfile, opacityProfile, '/profile', 'profile')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleProfile }] }}>
+            <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#8E54E9' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityProfile }]}>Profile</Animated.Text>
         </TouchableOpacity>
       </View>
     </View>
