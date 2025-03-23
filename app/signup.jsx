@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, Pressable } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, Pressable, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import backgroundPattern from "../assets/images/background.png";
 import cscLogo from "../assets/images/logo.png";
@@ -11,46 +12,54 @@ const Signup = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={backgroundPattern} style={styles.imageBackground} />
-      <Image source={cscLogo} style={styles.logo} />
-      <View style={styles.signupContainer}>
-        <View style={styles.nameContainer}>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>First Name</Text>
-            <TextInput style={styles.input} placeholder='First Name' />
+      <ImageBackground source={backgroundPattern} style={styles.imageBackground}>
+        <View style={styles.overlay}>
+          <Image source={cscLogo} style={styles.logo} />
+          <View style={styles.signupContainer}>
+            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.subtitle}>Sign up to get started</Text>
+
+            <View style={styles.nameContainer}>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>First Name</Text>
+                <TextInput style={styles.input} placeholder='First Name' placeholderTextColor="#aaa" />
+              </View>
+              <View style={styles.inputWrapper}>
+                <Text style={styles.label}>Last Name</Text>
+                <TextInput style={styles.input} placeholder='Last Name' placeholderTextColor="#aaa" />
+              </View>
+            </View>
+
+            <Text style={styles.label}>Student ID</Text>
+            <TextInput style={styles.input} placeholder='Student ID' placeholderTextColor="#aaa" />
+
+            <Text style={styles.label}>Email</Text>
+            <TextInput style={styles.input} placeholder='Email' placeholderTextColor="#aaa" />
+
+            <Text style={styles.label}>Password</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput style={styles.input} placeholder='Password' placeholderTextColor="#aaa" secureTextEntry={!passwordVisible} />
+              <TouchableOpacity style={styles.eyeIcon} onPress={() => setPasswordVisible(!passwordVisible)}>
+                <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="gray" />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.label}>Confirm Password</Text>
+            <View style={styles.passwordContainer}>
+              <TextInput style={styles.input} placeholder='Re-enter Password' placeholderTextColor="#aaa" secureTextEntry={!confirmPasswordVisible} />
+              <TouchableOpacity style={styles.eyeIcon} onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
+                <Ionicons name={confirmPasswordVisible ? "eye-off" : "eye"} size={20} color="gray" />
+              </TouchableOpacity>
+            </View>
+
+            <Pressable style={styles.signupButton}>
+              <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.signupGradient}>
+                <Text style={styles.signupText}>SIGN UP</Text>
+              </LinearGradient>
+            </Pressable>
           </View>
-          <View style={styles.inputWrapper}>
-            <Text style={styles.label}>Last Name</Text>
-            <TextInput style={styles.input} placeholder='Last Name' />
-          </View>
         </View>
-        
-        <Text style={styles.label}>Student ID</Text>
-        <TextInput style={styles.input} placeholder='Student ID' />
-        
-        <Text style={styles.label}>Email</Text>
-        <TextInput style={styles.input} placeholder='email' />
-
-        <Text style={styles.label}>Password</Text>
-        <View style={styles.passwordContainer}>
-          <TextInput style={styles.input} placeholder='password' secureTextEntry={!passwordVisible} />
-          <TouchableOpacity style={styles.eyeIcon} onPress={() => setPasswordVisible(!passwordVisible)}>
-            <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.label}>Confirm Password</Text>
-        <View style={styles.passwordContainer}>
-          <TextInput style={styles.input} placeholder='Re-enter password' secureTextEntry={!confirmPasswordVisible} />
-          <TouchableOpacity style={styles.eyeIcon} onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
-            <Ionicons name={confirmPasswordVisible ? "eye-off" : "eye"} size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-
-        <Pressable style={styles.signupButton}>
-          <Text style={styles.signupText}>SIGN UP</Text>
-        </Pressable>
-      </View>
+      </ImageBackground>
     </View>
   );
 };
@@ -58,35 +67,51 @@ const Signup = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   imageBackground: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
+    flex: 1,
+    resizeMode: 'cover',
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
   logo: {
-    marginTop: -150,
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    marginBottom: 20,
+    width: 120,
+    height: 120,
+    marginBottom: 30,
   },
   signupContainer: {
-    width: '90%',
+    width: '100%',
+    maxWidth: 400,
     backgroundColor: 'white',
-    padding: 20,
     borderRadius: 15,
+    padding: 30,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
     elevation: 5,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#666',
+    marginBottom: 30,
   },
   nameContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    width: '100%',
   },
   inputWrapper: {
     width: '48%',
@@ -94,6 +119,7 @@ const styles = StyleSheet.create({
   label: {
     fontWeight: 'bold',
     marginTop: 10,
+    color: '#333',
   },
   input: {
     width: '100%',
@@ -108,6 +134,7 @@ const styles = StyleSheet.create({
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    marginTop: 10,
   },
   eyeIcon: {
     position: 'absolute',
@@ -115,10 +142,12 @@ const styles = StyleSheet.create({
   },
   signupButton: {
     width: '100%',
-    backgroundColor: '#ff5733',
-    padding: 12,
     borderRadius: 25,
     marginTop: 20,
+    overflow: 'hidden',
+  },
+  signupGradient: {
+    paddingVertical: 15,
     alignItems: 'center',
   },
   signupText: {
