@@ -1,221 +1,148 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, ImageBackground, Image, Animated } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated, Easing } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
-import backgroundImage from '../assets/images/background.png'; // Replace with your background image path
-import logoImage from '../assets/images/logo.png'; // Replace with your logo image path
+import logoImage from '../assets/images/logo.png';
 
-const LoginScreen = () => {
+const { width } = Dimensions.get('window');
+
+const WelcomeScreen = () => {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [passwordVisible, setPasswordVisible] = useState(false);
 
-  const handleLogin = () => {
-    // Add login logic here
-    router.push('/dashboard'); // Navigate to the dashboard after login
-  };
+  // Animation references
+  const logoOpacity = useRef(new Animated.Value(0)).current;
+  const buttonTranslateY = useRef(new Animated.Value(50)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(logoOpacity, {
+        toValue: 1,
+        duration: 1500,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonTranslateY, {
+        toValue: 0,
+        duration: 1500,
+        easing: Easing.out(Easing.exp),
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <ImageBackground source={backgroundImage} style={styles.backgroundImage}>
-        <LinearGradient colors={['rgba(0,0,0,0.6)', 'rgba(0,0,0,0.6)']} style={styles.overlay}>
-          <Image source={logoImage} style={styles.logo} />
-          <View style={styles.formContainer}>
-            <Text style={styles.title}>College of Science</Text>
-            <Text style={styles.subtitle}>Log in to continue</Text>
+    <LinearGradient colors={['#4776E6', '#fff']} style={styles.gradient}>
+      <View style={styles.container}>
+      {/* Wave Background */}
+      <View style={styles.waveContainer}>
+        <Svg height="500" width={width} viewBox="0 0 390 10" style={styles.wave}>
+          <Path
+            fill="#4776E6"
+            d="M0,160L48,170.7C96,181,192,203,288,213.3C384,224,480,224,576,213.3C672,203,768,181,864,170.7C960,160,1056,160,1152,170.7C1248,181,1344,203,1392,213.3L1440,224L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+          />
+        </Svg>
+      </View>
 
-            <View style={styles.form}>
-              {/* Email Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="mail" size={20} color="#888" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Email"
-                  placeholderTextColor="#aaa"
-                  value={email}
-                  onChangeText={setEmail}
-                />
-              </View>
+      {/* Logo */}
+      <Animated.Image source={logoImage} style={[styles.logo, { opacity: logoOpacity }]} />
 
-              {/* Password Input */}
-              <View style={styles.inputContainer}>
-                <Ionicons name="lock-closed" size={20} color="#888" style={styles.inputIcon} />
-                <TextInput
-                  style={styles.input}
-                  placeholder="Password"
-                  placeholderTextColor="#aaa"
-                  secureTextEntry={!passwordVisible}
-                  value={password}
-                  onChangeText={setPassword}
-                />
-                <TouchableOpacity
-                  style={styles.eyeIcon}
-                  onPress={() => setPasswordVisible(!passwordVisible)}
-                >
-                  <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="#888" />
-                </TouchableOpacity>
-              </View>
+      {/* Buttons */}
+      <Animated.View style={[styles.buttonContainer, { transform: [{ translateY: buttonTranslateY }] }]}>
+        <TouchableOpacity
+          style={[styles.createAccountButton, { backgroundColor: '#4776E6' }]}
+          onPress={() => router.push('/signup')}
+        >
+          <Text style={[styles.buttonText, { color: '#fff' }]}>Create Account</Text>
+        </TouchableOpacity>
 
-              {/* Login Button */}
-              <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-                <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.loginGradient}>
-                  <Text style={styles.loginText}>LOGIN</Text>
-                </LinearGradient>
-              </TouchableOpacity>
-
-              {/* Divider */}
-              <View style={styles.divider}>
-                <Text style={styles.dividerText}>OR</Text>
-              </View>
-
-              {/* Social Login */}
-              <View style={styles.socialLoginContainer}>
-                <TouchableOpacity>
-                  <Image source={require('../assets/images/facebook.png')} style={styles.socialIcon} />
-                </TouchableOpacity>
-                <TouchableOpacity>
-                  <Image source={require('../assets/images/google.png')} style={styles.socialIcon} />
-                </TouchableOpacity>
-              </View>
-
-              {/* Sign-Up Link */}
-              <Text style={styles.signUpText}>
-                New to CS Merch?{' '}
-                <Text style={styles.signUpLink} onPress={() => router.push('/signup')}>
-                  Sign up
-                </Text>
-              </Text>
-            </View>
-          </View>
-        </LinearGradient>
-      </ImageBackground>
-    </View>
+        <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
+          <Text style={styles.loginButtonText}>Login</Text>
+        </TouchableOpacity>
+      </Animated.View>
+      </View>
+    </LinearGradient>
+    
   );
 };
 
 const styles = StyleSheet.create({
+  gradient: {
+    flex: 1,
+  },
+  
+  waveContainer: {
+    position: 'absolute',
+    top: -250,
+    width: '100%',
+    height: 500,
+  },
   container: {
     flex: 1,
-  },
-  backgroundImage: {
-    flex: 1,
-    resizeMode: 'cover',
-  },
-  overlay: {
-    flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    justifyContent: 'center',
+    width: '100%',
+  },
+  wave: {
+    position: 'absolute',
+    top: 0,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 9,
+    elevation: 9,
   },
   logo: {
-    width: 150,
-    height: 150,
-    marginBottom: 40,
+    width: 160,
+    height: 160,
+    marginBottom: 20,
+    marginTop: -100,
+    shadowColor: '#000',
+    shadowOffset: { width: 1, height: 1 },
+    shadowOpacity: 0.9,
+    shadowRadius: 4,
+    elevation: 6,
   },
-  formContainer: {
+  buttonContainer: {
     width: '100%',
-    maxWidth: 400,
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 30,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  createAccountButton: {
+    width: '85%',
+    borderRadius: 30,
+    paddingVertical: 15,
+    alignItems: 'center',
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2,
-    shadowRadius: 5,
+    shadowRadius: 6,
     elevation: 5,
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 30,
-  },
-  form: {
-    width: '100%',
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9f9f9',
-    borderRadius: 10,
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    marginBottom: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  inputIcon: {
-    marginRight: 10,
-  },
-  input: {
-    flex: 1,
-    fontSize: 16,
-    color: '#333',
-  },
-  eyeIcon: {
-    marginLeft: 10,
   },
   loginButton: {
-    marginTop: 20,
-    borderRadius: 10,
-    overflow: 'hidden',
-  },
-  loginGradient: {
+    width: '85%',
+    borderRadius: 30,
+    backgroundColor: '#fff',
     paddingVertical: 15,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+    marginTop:20,
   },
-  loginText: {
-    color: '#fff',
+  loginButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: '#4776E6',
   },
-  divider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#ddd',
-    marginVertical: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  dividerText: {
-    position: 'absolute',
-    backgroundColor: 'white',
-    paddingHorizontal: 10,
-    color: '#888',
-    fontSize: 14,
-  },
-  socialLoginContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    width: '60%',
-    marginBottom: 20,
-  },
-  socialIcon: {
-    width: 40,
-    height: 40,
-  },
-  signUpText: {
-    fontSize: 16,
-    color: '#666',
-    textAlign: 'center',
-  },
-  signUpLink: {
-    color: '#8E54E9',
+  buttonText: {
+    fontSize: 18,
     fontWeight: 'bold',
+    color: '#fff',
   },
 });
 
-export default LoginScreen;
+export default WelcomeScreen;
