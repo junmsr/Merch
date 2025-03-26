@@ -7,8 +7,43 @@ import backgroundPattern from "../assets/images/background.png";
 import cscLogo from "../assets/images/logo.png";
 
 const Signup = () => {
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [studentId, setStudentId] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
+  const handleSignup = async () => {
+    try {
+      const response = await fetch('http://10.10.58.188:5000/api/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          first_name: firstName,
+          last_name: lastName,
+          student_id: studentId,
+          email: email,
+          password: password,
+        }),
+      });
+  
+      const data = await response.json();
+      console.log('Response:', data); // Log the response
+  
+      if (response.ok) {
+        alert(data.message); // Show success message
+      } else {
+        alert(data.error); // Show error message
+      }
+    } catch (error) {
+      console.error('Error during signup:', error); // Log any errors
+      alert('An error occurred during signup. Please try again.', error); // Show error message
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -22,23 +57,54 @@ const Signup = () => {
             <View style={styles.nameContainer}>
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>First Name</Text>
-                <TextInput style={styles.input} placeholder='First Name' placeholderTextColor="#aaa" />
+                <TextInput
+                  style={styles.input}
+                  placeholder='First Name'
+                  placeholderTextColor="#aaa"
+                  value={firstName}
+                  onChangeText={setFirstName}
+                />
               </View>
               <View style={styles.inputWrapper}>
                 <Text style={styles.label}>Last Name</Text>
-                <TextInput style={styles.input} placeholder='Last Name' placeholderTextColor="#aaa" />
+                <TextInput
+                  style={styles.input}
+                  placeholder='Last Name'
+                  placeholderTextColor="#aaa"
+                  value={lastName}
+                  onChangeText={setLastName}
+                />
               </View>
             </View>
 
             <Text style={styles.label}>Student ID</Text>
-            <TextInput style={styles.input} placeholder='Student ID' placeholderTextColor="#aaa" />
+            <TextInput
+              style={styles.input}
+              placeholder='Student ID'
+              placeholderTextColor="#aaa"
+              value={studentId}
+              onChangeText={setStudentId}
+            />
 
             <Text style={styles.label}>Email</Text>
-            <TextInput style={styles.input} placeholder='Email' placeholderTextColor="#aaa" />
+            <TextInput
+              style={styles.input}
+              placeholder='Email'
+              placeholderTextColor="#aaa"
+              value={email}
+              onChangeText={setEmail}
+            />
 
             <Text style={styles.label}>Password</Text>
             <View style={styles.passwordContainer}>
-              <TextInput style={styles.input} placeholder='Password' placeholderTextColor="#aaa" secureTextEntry={!passwordVisible} />
+              <TextInput
+                style={styles.input}
+                placeholder='Password'
+                placeholderTextColor="#aaa"
+                secureTextEntry={!passwordVisible}
+                value={password}
+                onChangeText={setPassword}
+              />
               <TouchableOpacity style={styles.eyeIcon} onPress={() => setPasswordVisible(!passwordVisible)}>
                 <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="gray" />
               </TouchableOpacity>
@@ -46,13 +112,18 @@ const Signup = () => {
 
             <Text style={styles.label}>Confirm Password</Text>
             <View style={styles.passwordContainer}>
-              <TextInput style={styles.input} placeholder='Re-enter Password' placeholderTextColor="#aaa" secureTextEntry={!confirmPasswordVisible} />
+              <TextInput
+                style={styles.input}
+                placeholder='Re-enter Password'
+                placeholderTextColor="#aaa"
+                secureTextEntry={!confirmPasswordVisible}
+              />
               <TouchableOpacity style={styles.eyeIcon} onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
                 <Ionicons name={confirmPasswordVisible ? "eye-off" : "eye"} size={20} color="gray" />
               </TouchableOpacity>
             </View>
 
-            <Pressable style={styles.signupButton}>
+            <Pressable style={styles.signupButton} onPress={handleSignup}>
               <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.signupGradient}>
                 <Text style={styles.signupText}>SIGN UP</Text>
               </LinearGradient>
