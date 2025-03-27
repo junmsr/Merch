@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, Pressable, Dimensions, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, Pressable, Dimensions, Animated, Easing, ImageBackground } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path } from 'react-native-svg';
 
 import cscLogo from "../assets/images/logo.png";
+import backgroundPattern from "../assets/images/background-pattern.png";
 
 const { width } = Dimensions.get('window');
 
@@ -14,10 +14,16 @@ const Signup = () => {
   const [studentId, setStudentId] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   const handleSignup = async () => {
+    if (password !== confirmPassword) {
+      alert('Passwords do not match.');
+      return;
+    }
+
     try {
       const response = await fetch('http://10.10.58.188:5000/api/signup', {
         method: 'POST',
@@ -32,21 +38,21 @@ const Signup = () => {
           password: password,
         }),
       });
-  
+
       const data = await response.json();
-      console.log('Response:', data); // Log the response
-  
+      console.log('Response:', data);
+
       if (response.ok) {
-        alert(data.message); // Show success message
+        alert(data.message);
       } else {
-        alert(data.error); // Show error message
+        alert(data.error);
       }
     } catch (error) {
-      console.error('Error during signup:', error); // Log any errors
-      alert('An error occurred during signup. Please try again.', error); // Show error message
+      console.error('Error during signup:', error);
+      alert('An error occurred during signup. Please try again.');
     }
   };
-  // Animation references
+
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const formTranslateY = useRef(new Animated.Value(50)).current;
 
@@ -68,149 +74,93 @@ const Signup = () => {
 
   return (
     <LinearGradient colors={['#4776E6', '#fff']} style={styles.gradient}>
-    <View style={styles.container}>
-      <ImageBackground source={backgroundPattern} style={styles.imageBackground}>
-        <View style={styles.overlay}>
-          <Image source={cscLogo} style={styles.logo} />
-          <View style={styles.signupContainer}>
-            <Text style={styles.title}>Create Account</Text>
-            <Text style={styles.subtitle}>Sign up to get started</Text>
+      <View style={styles.container}>
+        <ImageBackground source={backgroundPattern} style={styles.imageBackground}>
+          <View style={styles.overlay}>
+            <Animated.Image source={cscLogo} style={[styles.logo, { opacity: logoOpacity }]} />
+            <Animated.View style={[styles.inputCard, { transform: [{ translateY: formTranslateY }] }]}>
+              <Text style={styles.title}>Create Account</Text>
+              <Text style={styles.subtitle}>Sign up to get started</Text>
 
-            <View style={styles.nameContainer}>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>First Name</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder='First Name'
-                  placeholderTextColor="#aaa"
-                  value={firstName}
-                  onChangeText={setFirstName}
-                />
+              <View style={styles.nameContainer}>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>First Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="First Name"
+                    placeholderTextColor="#aaa"
+                    value={firstName}
+                    onChangeText={setFirstName}
+                  />
+                </View>
+                <View style={styles.inputWrapper}>
+                  <Text style={styles.label}>Last Name</Text>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="Last Name"
+                    placeholderTextColor="#aaa"
+                    value={lastName}
+                    onChangeText={setLastName}
+                  />
+                </View>
               </View>
-              <View style={styles.inputWrapper}>
-                <Text style={styles.label}>Last Name</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder='Last Name'
-                  placeholderTextColor="#aaa"
-                  value={lastName}
-                  onChangeText={setLastName}
-                />
-              </View>
-            </View>
 
-            <Text style={styles.label}>Student ID</Text>
-            <TextInput
-              style={styles.input}
-              placeholder='Student ID'
-              placeholderTextColor="#aaa"
-              value={studentId}
-              onChangeText={setStudentId}
-            />
-
-            <Text style={styles.label}>Email</Text>
-            <TextInput
-              style={styles.input}
-              placeholder='Email'
-              placeholderTextColor="#aaa"
-              value={email}
-              onChangeText={setEmail}
-            />
-
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordContainer}>
+              <Text style={styles.label}>Student ID</Text>
               <TextInput
                 style={styles.input}
-                placeholder='Password'
+                placeholder="Student ID"
                 placeholderTextColor="#aaa"
-                secureTextEntry={!passwordVisible}
-                value={password}
-                onChangeText={setPassword}
+                value={studentId}
+                onChangeText={setStudentId}
               />
-              <TouchableOpacity style={styles.eyeIcon} onPress={() => setPasswordVisible(!passwordVisible)}>
-                <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="gray" />
-              </TouchableOpacity>
-            </View>
 
-            <Text style={styles.label}>Confirm Password</Text>
-            <View style={styles.passwordContainer}>
+              <Text style={styles.label}>Email</Text>
               <TextInput
                 style={styles.input}
-                placeholder='Re-enter Password'
+                placeholder="Email"
                 placeholderTextColor="#aaa"
-                secureTextEntry={!confirmPasswordVisible}
+                value={email}
+                onChangeText={setEmail}
               />
-              <TouchableOpacity style={styles.eyeIcon} onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
-                <Ionicons name={confirmPasswordVisible ? "eye-off" : "eye"} size={20} color="gray" />
-              </TouchableOpacity>
-            </View>
 
-            <Pressable style={styles.signupButton} onPress={handleSignup}>
-              <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.signupGradient}>
-                <Text style={styles.signupText}>SIGN UP</Text>
-              </LinearGradient>
-            </Pressable>
-      {/* Wave Background */}
-      <View style={styles.waveContainer}>
-        <Svg height="500" width={width} viewBox="0 0 390 10" style={styles.wave}>
-          <Path
-            fill="#4776E6"
-            d="M0,160L48,170.7C96,181,192,203,288,213.3C384,224,480,224,576,213.3C672,203,768,181,864,170.7C960,160,1056,160,1152,170.7C1248,181,1344,203,1392,213.3L1440,224L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
-          />
-        </Svg>
-      </View>
+              <Text style={styles.label}>Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Password"
+                  placeholderTextColor="#aaa"
+                  secureTextEntry={!passwordVisible}
+                  value={password}
+                  onChangeText={setPassword}
+                />
+                <TouchableOpacity style={styles.eyeIcon} onPress={() => setPasswordVisible(!passwordVisible)}>
+                  <Ionicons name={passwordVisible ? "eye-off" : "eye"} size={20} color="gray" />
+                </TouchableOpacity>
+              </View>
 
-      {/* Logo */}
-      <Animated.Image source={cscLogo} style={[styles.logo, { opacity: logoOpacity }]} />
+              <Text style={styles.label}>Confirm Password</Text>
+              <View style={styles.passwordContainer}>
+                <TextInput
+                  style={styles.input}
+                  placeholder="Re-enter Password"
+                  placeholderTextColor="#aaa"
+                  secureTextEntry={!confirmPasswordVisible}
+                  value={confirmPassword}
+                  onChangeText={setConfirmPassword}
+                />
+                <TouchableOpacity style={styles.eyeIcon} onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
+                  <Ionicons name={confirmPasswordVisible ? "eye-off" : "eye"} size={20} color="gray" />
+                </TouchableOpacity>
+              </View>
 
-      {/* Signup Form */}
-      <Animated.View style={[styles.inputCard, { transform: [{ translateY: formTranslateY }] }]}>
-        <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Sign up to get started</Text>
-
-        <View style={styles.nameContainer}>
-          <View style={styles.inputWrapper}>
-            <TextInput style={styles.input} placeholder="First Name" placeholderTextColor="#aaa" />
-              
+              <Pressable style={styles.signupButton} onPress={handleSignup}>
+                <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.signupGradient}>
+                  <Text style={styles.signupText}>SIGN UP</Text>
+                </LinearGradient>
+              </Pressable>
+            </Animated.View>
           </View>
-          <View style={styles.inputWrapper}>
-            <TextInput style={styles.input} placeholder="Last Name" placeholderTextColor="#aaa" />
-          </View>
-        </View>
-
-        <TextInput style={styles.input} placeholder="Student ID" placeholderTextColor="#aaa" />
-        <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#aaa" />
-
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#aaa"
-            secureTextEntry={!passwordVisible}
-          />
-          <TouchableOpacity style={styles.eyeIcon} onPress={() => setPasswordVisible(!passwordVisible)}>
-            <Ionicons name={passwordVisible ? 'eye-off' : 'eye'} size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.passwordContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Re-enter Password"
-            placeholderTextColor="#aaa"
-            secureTextEntry={!confirmPasswordVisible}
-          />
-          <TouchableOpacity style={styles.eyeIcon} onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
-            <Ionicons name={confirmPasswordVisible ? 'eye-off' : 'eye'} size={20} color="gray" />
-          </TouchableOpacity>
-        </View>
-
-        <Pressable style={styles.signupButton}>
-          
-            <Text style={styles.signupText}>SIGN UP</Text>
-
-        </Pressable>
-      </Animated.View>
+        </ImageBackground>
       </View>
     </LinearGradient>
   );
@@ -220,42 +170,27 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  scrollContainer: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  waveContainer: {
-    position: 'absolute',
-    top: -250,
-    width: '100%',
-    height: 500,
-  },
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
-  wave: {
-    position: 'absolute',
-    top: 0,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.2,
-    shadowRadius: 9,
-    elevation: 9,
+  imageBackground: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
   },
   logo: {
     width: 160,
     height: 160,
     marginBottom: 20,
-    marginTop: -50,
-    shadowColor: '#000',
-    shadowOffset: { width: 1, height: 1 },
-    shadowOpacity: 0.9,
-    shadowRadius: 4,
-    elevation: 6,
   },
   inputCard: {
     width: '89%',
@@ -316,18 +251,13 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     alignItems: 'center',
     marginTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    elevation: 5,
   },
   signupGradient: {
     paddingVertical: 15,
     alignItems: 'center',
   },
   signupText: {
-   fontSize: 18,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
