@@ -1,14 +1,20 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated, Modal, Pressable, ActivityIndicator } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 
 import ProfileImage from '../assets/images/Junmar.png';
 import SampleProductImage from '../assets/images/Junmar.png'; // Replace with your sample product image path
 
 const ProfileScreen = () => {
   const router = useRouter();
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   const profileCardAnimation = useRef(new Animated.Value(0)).current;
 
@@ -385,7 +391,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     padding: 16,
-    backgroundColor: '#4776E6', // Consistent header color
+    backgroundColor: '#4776E6', 
     height:130,
     marginBottom: 20,
   },

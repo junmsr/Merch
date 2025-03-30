@@ -3,12 +3,20 @@ import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, Pressable, 
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
+import { useLayoutEffect } from 'react';
+import { useNavigation } from '@react-navigation/native';
 
 import cscLogo from "../assets/images/logo.png";
 
 const { width } = Dimensions.get('window');
 
-const Signup = () => {
+const SignupScreen = () => {
+  const navigation = useNavigation();
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
+
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
@@ -217,4 +225,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Signup;
+export default SignupScreen;

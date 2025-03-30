@@ -1,7 +1,8 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useLayoutEffect } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 
 const cartItems = [
   {
@@ -24,8 +25,13 @@ const cartItems = [
 
 const CartScreen = () => {
   const router = useRouter();
+  const navigation = useNavigation();
   const [items, setItems] = useState(cartItems);
   const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   // Animation references for bottom navigation
   const scaleHome = useRef(new Animated.Value(1)).current;
