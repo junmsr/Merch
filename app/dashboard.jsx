@@ -16,7 +16,7 @@ import Junmar from '../assets/images/Junmar.png'; // Import the Junmar.png image
 const { width } = Dimensions.get('window');
 
 const categories = [
-  { name: "Circuits", image: IT },
+  { name: "Circuits", image: IT},
   { name: "Chess", image: CHEM },
   { name: "CSC", image: LOGO },
   { name: "Symbiosis", image: BIO },
@@ -134,15 +134,43 @@ const DashboardScreen = () => {
 
       {/* Categories */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
-        {categories.map((category, index) => (
-          <TouchableOpacity key={index} style={styles.category} activeOpacity={0.8}>
-            <View style={styles.categoryBox}>
-              <Image source={category.image} style={styles.categoryImage} />
-            </View>
-            <Text style={styles.categoryText}>{category.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+  {categories.map((category, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.category}
+      activeOpacity={0.8}
+      onPress={() => {
+        switch (category.name) {
+          case 'Circuits':
+            router.push('/circuits');
+            break;
+          case 'Chess':
+            router.push('/chess');
+            break;
+          case 'CSC':
+            router.push('/csc');
+            break;
+          case 'Symbiosis':
+            router.push('/symbiosis');
+            break;
+          case 'Access':
+            router.push('/access');
+            break;
+          case 'STORM':
+            router.push('/storm');
+            break;
+          default:
+            break;
+        }
+      }}
+    >
+      <View style={styles.categoryBox}>
+        <Image source={category.image} style={styles.categoryImage} />
+      </View>
+      <Text style={styles.categoryText}>{category.name}</Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
 
       {/* Sections */}
       <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
@@ -335,6 +363,8 @@ const styles = StyleSheet.create({
   category: {
     alignItems: 'center',
     marginHorizontal: 8,
+    marginBottom: 15,
+    marginTop: -15,
   },
   categoryBox: {
     width: 70,
@@ -548,7 +578,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: 'white',
     position: 'absolute',
-    bottom: 0,
+    bottom: 5,
     left: 0,
     right: 0,
     borderTopWidth: 1,

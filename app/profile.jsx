@@ -579,7 +579,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#ddd',
     position: 'absolute', // Fix the navigation at the bottom
-    bottom: 0,
+    bottom: 5,
     left: 0,
     right: 0,
     elevation: 5, // Add shadow for better visibility
