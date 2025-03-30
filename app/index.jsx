@@ -178,8 +178,11 @@ const styles = StyleSheet.create({
   divider: {
     width: '85%',
     height: 1,
-    backgroundColor: '#4776E6',
+    padding:2,
+    borderRadius: 10,
+    backgroundColor: 'gray',
     marginVertical: 10,
+    opacity: 0.3,
   },
   logoTitleContainer: {
     flexDirection: 'row',
@@ -189,15 +192,20 @@ const styles = StyleSheet.create({
   },
   verticalDivider: {
     width: 1,
-    height:250,
-    backgroundColor: '#ccc',
+    height:130,
+    backgroundColor: 'white',
     marginHorizontal: 10,
+    marginTop: -110,
+    padding:2,
+    borderRadius: 10,
   },
   titleText: {
-    fontSize: 28, // Increased font size for better visibility
+    fontSize: 50, // Increased font size for better visibility
     fontWeight: 'bold',
     fontFamily: 'sans-serif', // Set a specific font family (use a custom font if needed)
-    color: '#4776E6',
+    color: 'white',
+    marginTop: -120,
+    
   },
 });
 
