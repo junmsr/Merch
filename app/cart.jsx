@@ -1,8 +1,8 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import React, { useState, useRef, useCallback, useLayoutEffect } from 'react';
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { useNavigation } from '@react-navigation/native';
 
 const cartItems = [
   {
@@ -25,8 +25,13 @@ const cartItems = [
 
 const CartScreen = () => {
   const router = useRouter();
+  const navigation = useNavigation();
   const [items, setItems] = useState(cartItems);
   const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0);
+
+  useLayoutEffect(() => {
+    navigation.setOptions({ headerShown: false });
+  }, [navigation]);
 
   // Animation references for bottom navigation
   const scaleHome = useRef(new Animated.Value(1)).current;
@@ -72,9 +77,51 @@ const CartScreen = () => {
     setItems(items.map(item => item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item));
   };
 
-  const renderCartItems = () => {
-    if (items.length === 0) {
-      return (
+  const handleRemove = (id) => {
+    setItems(items.filter(item => item.id !== id));
+  };
+
+  const renderCartItem = useCallback(({ item }) => (
+    <View style={styles.cartItem}>
+      <Image source={{ uri: item.image }} style={styles.cartImage} />
+      <View style={styles.itemDetails}>
+        <Text style={styles.itemTitle}>{item.title}</Text>
+        <Text style={styles.itemDescription}>{item.description}</Text>
+        <Text style={styles.itemPrice}>₱{item.price}</Text>
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity onPress={() => handleDecrease(item.id)}>
+            <Ionicons name="remove-circle" size={24} color="#4776E6" />
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{item.quantity}</Text>
+          <TouchableOpacity onPress={() => handleIncrease(item.id)}>
+            <Ionicons name="add-circle" size={24} color="#4776E6" />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeButton}>
+          <Ionicons name="trash" size={20} color="white" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  ), [items]);
+
+  return (
+    <View style={styles.container}>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => router.push('/dashboard')}>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Your Cart</Text>
+      </View>
+
+      {/* Cart Items */}
+      {items.length > 0 ? (
+        <FlatList
+          data={items}
+          renderItem={renderCartItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.cartContainer}
+        />
+      ) : (
         <View style={styles.emptyCartContainer}>
           <Image
             source={{ uri: "https://via.placeholder.com/200x150" }}
@@ -85,55 +132,19 @@ const CartScreen = () => {
             <Text style={styles.shopNowText}>Shop Now</Text>
           </TouchableOpacity>
         </View>
-      );
-    }
-
-    return items.map(item => (
-      <Animated.View key={item.id} style={styles.cartItem}>
-        <Image source={{ uri: item.image }} style={styles.cartImage} />
-        <View style={styles.itemDetails}>
-          <Text style={styles.itemTitle}>{item.title}</Text>
-          <Text style={styles.itemDescription}>{item.description}</Text>
-          <Text style={styles.itemPrice}>₱{item.price}</Text>
-          <View style={styles.quantityContainer}>
-            <TouchableOpacity onPress={() => handleDecrease(item.id)}>
-              <Ionicons name="remove-circle" size={24} color="#8E54E9" />
-            </TouchableOpacity>
-            <Text style={styles.quantityText}>{item.quantity}</Text>
-            <TouchableOpacity onPress={() => handleIncrease(item.id)}>
-              <Ionicons name="add-circle" size={24} color="#8E54E9" />
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Animated.View>
-    ));
-  };
-
-  return (
-    <View style={styles.container}>
-      {/* Header */}
-      <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.header}>
-        <TouchableOpacity onPress={() => router.push('/dashboard')}>
-          <Ionicons name="arrow-back" size={28} color="white" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Your Cart</Text>
-      </LinearGradient>
-
-      {/* Cart Items */}
-      <ScrollView contentContainerStyle={styles.cartContainer}>
-        {renderCartItems()}
-        {/* Add padding to the bottom of the scroll view */}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+      )}
 
       {/* Total and Checkout */}
       {items.length > 0 && (
         <View style={styles.totalContainer}>
           <Text style={styles.totalText}>Total: ₱{totalPrice}</Text>
-          <TouchableOpacity style={styles.checkoutButton}>
-            <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.checkoutGradient}>
+          <TouchableOpacity
+            style={[styles.checkoutButton, { opacity: items.length > 0 ? 1 : 0.5 }]}
+            disabled={items.length === 0}
+          >
+            <View style={styles.checkoutSolid}>
               <Text style={styles.checkoutText}>Checkout</Text>
-            </LinearGradient>
+            </View>
           </TouchableOpacity>
         </View>
       )}
@@ -145,7 +156,7 @@ const CartScreen = () => {
           onPress={() => handlePress(scaleHome, opacityHome, '/dashboard', 'home')}
         >
           <Animated.View style={{ transform: [{ scale: scaleHome }] }}>
-            <Ionicons name="home" size={28} color={activeTab === 'home' ? '#8E54E9' : '#888'} />
+            <Ionicons name="home" size={28} color={activeTab === 'home' ? '#4776E6' : '#888'} />
           </Animated.View>
           <Animated.Text style={[styles.navText, { opacity: opacityHome }]}>Home</Animated.Text>
         </TouchableOpacity>
@@ -155,7 +166,7 @@ const CartScreen = () => {
           onPress={() => handlePress(scaleCart, opacityCart, '/cart', 'cart')}
         >
           <Animated.View style={{ transform: [{ scale: scaleCart }] }}>
-            <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#8E54E9' : '#888'} />
+            <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#4776E6' : '#888'} />
           </Animated.View>
           <Animated.Text style={[styles.navText, { opacity: opacityCart }]}>Cart</Animated.Text>
         </TouchableOpacity>
@@ -165,7 +176,7 @@ const CartScreen = () => {
           onPress={() => handlePress(scaleProfile, opacityProfile, '/profile', 'profile')}
         >
           <Animated.View style={{ transform: [{ scale: scaleProfile }] }}>
-            <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#8E54E9' : '#888'} />
+            <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#4776E6' : '#888'} />
           </Animated.View>
           <Animated.Text style={[styles.navText, { opacity: opacityProfile }]}>Profile</Animated.Text>
         </TouchableOpacity>
@@ -182,27 +193,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#8E54E9',
+    paddingHorizontal: 16,
+    paddingVertical: 20,
+    backgroundColor: '#4776E6', // Solid color for header
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     elevation: 3,
+    height:130,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
     marginLeft: 10,
+    marginTop:35,
   },
   cartContainer: {
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 80,
   },
   cartItem: {
     flexDirection: 'row',
     backgroundColor: 'white',
     borderRadius: 8,
-    padding: 10,
-    marginBottom: 10,
+    padding: 12, // Increased padding for better spacing
+    marginBottom: 12, // Added consistent spacing between items
     elevation: 2,
   },
   cartImage: {
@@ -212,30 +228,32 @@ const styles = StyleSheet.create({
   },
   itemDetails: {
     flex: 1,
-    marginLeft: 10,
+    marginLeft: 12, // Increased spacing between image and details
   },
   itemTitle: {
-    fontSize: 18,
+    fontSize: 16, // Adjusted font size for consistency
     fontWeight: 'bold',
     color: '#333',
+    marginBottom: 4, // Added spacing below the title
   },
   itemDescription: {
     fontSize: 14,
     color: '#666',
-    marginVertical: 4,
+    marginBottom: 6, // Added spacing below the description
   },
   itemPrice: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#8E54E9',
+    color: '#4776E6', // Updated to use the solid color
+    marginBottom: 8, // Added spacing below the price
   },
   quantityContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 5,
+    marginTop: 8, // Added spacing above the quantity controls
   },
   quantityText: {
-    marginHorizontal: 10,
+    marginHorizontal: 12, // Increased spacing between quantity controls
     fontSize: 16,
   },
   totalContainer: {
@@ -245,7 +263,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     elevation: 5,
     position: 'absolute',
-    bottom: 60, // Adjusted to be above the bottom navigation
+    bottom: 60,
     left: 0,
     right: 0,
   },
@@ -253,12 +271,13 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   checkoutButton: {
     alignItems: 'center',
   },
-  checkoutGradient: {
+  checkoutSolid: {
+    backgroundColor: '#4776E6', // Solid color for checkout button
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -292,6 +311,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 50,
+    paddingHorizontal: 16, // Added padding for better alignment
   },
   emptyCartImage: {
     width: 200,
@@ -303,9 +323,10 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#666',
     marginBottom: 10,
+    textAlign: 'center', // Centered text for better alignment
   },
   shopNowButton: {
-    backgroundColor: '#8E54E9',
+    backgroundColor: '#4776E6', // Solid color instead of gradient
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
@@ -313,6 +334,22 @@ const styles = StyleSheet.create({
   shopNowText: {
     color: 'white',
     fontSize: 16,
+    fontWeight: 'bold',
+  },
+  removeButton: {
+    marginTop: 10,
+    backgroundColor: '#FF3B30', // Red color for remove button
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  removeButtonText: {
+    color: 'white',
+    fontSize: 14,
     fontWeight: 'bold',
   },
 });

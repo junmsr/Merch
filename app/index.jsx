@@ -1,19 +1,15 @@
-import React, { useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, Dimensions, Animated, Easing } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, StyleSheet, Image, Animated, Dimensions, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-
 import logoImage from '../assets/images/logo.png';
 
 const { width } = Dimensions.get('window');
 
-const WelcomeScreen = () => {
-  const router = useRouter();
-
-  // Animation references
+const SplashScreen = ({ onFinish }) => {
   const logoOpacity = useRef(new Animated.Value(0)).current;
-  const buttonTranslateY = useRef(new Animated.Value(50)).current;
+  const logoScale = useRef(new Animated.Value(0.8)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -22,47 +18,68 @@ const WelcomeScreen = () => {
         duration: 1500,
         useNativeDriver: true,
       }),
-      Animated.timing(buttonTranslateY, {
-        toValue: 0,
+      Animated.timing(logoScale, {
+        toValue: 1,
         duration: 1500,
-        easing: Easing.out(Easing.exp),
         useNativeDriver: true,
       }),
-    ]).start();
+    ]).start(() => {
+      setTimeout(onFinish, 2000); // Wait 2 seconds before transitioning
+    });
   }, []);
+
+  return (
+    <View style={styles.splashContainer}>
+      <Animated.Image
+        source={logoImage}
+        style={[styles.splashLogo, { opacity: logoOpacity, transform: [{ scale: logoScale }] }]}
+      />
+    </View>
+  );
+};
+
+const WelcomeScreen = () => {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
+
+  if (isLoading) {
+    return <SplashScreen onFinish={() => setIsLoading(false)} />;
+  }
 
   return (
     <LinearGradient colors={['#4776E6', '#fff']} style={styles.gradient}>
       <View style={styles.container}>
-      {/* Wave Background */}
-      <View style={styles.waveContainer}>
-        <Svg height="500" width={width} viewBox="0 0 390 10" style={styles.wave}>
-          <Path
-            fill="#4776E6"
-            d="M0,160L48,170.7C96,181,192,203,288,213.3C384,224,480,224,576,213.3C672,203,768,181,864,170.7C960,160,1056,160,1152,170.7C1248,181,1344,203,1392,213.3L1440,224L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
-          />
-        </Svg>
-      </View>
+        {/* Wave Background */}
+        <View style={styles.waveContainer}>
+          <Svg height="500" width={width} viewBox="0 0 390 10" style={styles.wave}>
+            <Path
+              fill="#4776E6"
+              d="M0,160L48,170.7C96,181,192,203,288,213.3C384,224,480,224,576,213.3C672,203,768,181,864,170.7C960,160,1056,160,1152,170.7C1248,181,1344,203,1392,213.3L1440,224L1440,0L1392,0C1344,0,1248,0,1152,0C1056,0,960,0,864,0C768,0,672,0,576,0C480,0,384,0,288,0C192,0,96,0,48,0L0,0Z"
+            />
+          </Svg>
+        </View>
 
-      {/* Logo */}
-      <Animated.Image source={logoImage} style={[styles.logo, { opacity: logoOpacity }]} />
+        {/* Logo */}
+        <Animated.Image source={logoImage} style={[styles.logo]} />
 
-      {/* Buttons */}
-      <Animated.View style={[styles.buttonContainer, { transform: [{ translateY: buttonTranslateY }] }]}>
-        <TouchableOpacity
-          style={[styles.createAccountButton, { backgroundColor: '#4776E6' }]}
-          onPress={() => router.push('/signup')}
-        >
-          <Text style={[styles.buttonText, { color: '#fff' }]}>Create Account</Text>
-        </TouchableOpacity>
+        {/* Buttons */}
+        <Animated.View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={[styles.createAccountButton, { backgroundColor: '#4776E6' }]}
+            onPress={() => router.push('/signup')}
+          >
+            <Text style={[styles.buttonText, { color: '#fff' }]}>Create Account</Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
-          <Text style={styles.loginButtonText}>Login</Text>
-        </TouchableOpacity>
-      </Animated.View>
+          {/* Divider */}
+          <View style={styles.divider} />
+
+          <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
+            <Text style={styles.loginButtonText}>Login</Text>
+          </TouchableOpacity>
+        </Animated.View>
       </View>
     </LinearGradient>
-    
   );
 };
 
@@ -70,7 +87,16 @@ const styles = StyleSheet.create({
   gradient: {
     flex: 1,
   },
-  
+  splashContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#4776E6',
+  },
+  splashLogo: {
+    width: 200,
+    height: 200,
+  },
   waveContainer: {
     position: 'absolute',
     top: -250,
@@ -131,7 +157,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 6,
     elevation: 5,
-    marginTop:20,
+    marginTop: 20,
   },
   loginButtonText: {
     fontSize: 18,
@@ -142,6 +168,12 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
+  },
+  divider: {
+    width: '85%',
+    height: 1,
+    backgroundColor: '#4776E6',
+    marginVertical: 10,
   },
 });
 
