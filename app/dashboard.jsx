@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, TextInput, Animated } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, TextInput, Animated, Modal, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
@@ -10,6 +10,7 @@ import LOGO from '../assets/images/logo.png';
 import BIO from '../assets/images/BIO.png';
 import CS from '../assets/images/CS.png';
 import STORM from '../assets/images/STORM.png';
+import Junmar from '../assets/images/Junmar.png'; // Import the Junmar.png image
 
 const { width } = Dimensions.get('window');
 
@@ -63,6 +64,9 @@ const DashboardScreen = () => {
 
   const [activeTab, setActiveTab] = useState('home');
 
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
   const handlePress = (scaleRef, opacityRef, route, tabName) => {
     // Reset all opacities
     Animated.timing(opacityHome, { toValue: 0.5, duration: 200, useNativeDriver: true }).start();
@@ -90,6 +94,22 @@ const DashboardScreen = () => {
 
     // Navigate to the route after animation
     if (route) router.push(route);
+  };
+
+  const handleProductPress = (product) => {
+    setSelectedProduct(product);
+    setModalVisible(true);
+  };
+
+  const handleAddToCart = () => {
+    setModalVisible(false);
+    console.log(`${selectedProduct.title} added to cart`);
+  };
+
+  const handleBuyNow = () => {
+    setModalVisible(false);
+    console.log(`Proceeding to buy ${selectedProduct.title}`);
+    router.push('/checkout');
   };
 
   return (
@@ -132,7 +152,7 @@ const DashboardScreen = () => {
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {section.items.map((item, i) => (
-                <TouchableOpacity key={i} style={styles.card}>
+                <TouchableOpacity key={i} style={styles.card} onPress={() => handleProductPress(item)}>
                   <Image source={{ uri: item.image }} style={styles.cardImage} />
                   <Text style={styles.cardTitle}>{item.title}</Text>
                   <Text style={styles.cardDescription}>{item.description}</Text>
@@ -143,6 +163,78 @@ const DashboardScreen = () => {
           </View>
         ))}
       </ScrollView>
+
+      {/* Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            {selectedProduct && (
+              <>
+                {/* Product Image */}
+                <View style={styles.modalImageContainer}>
+                  <Image source={{ uri: selectedProduct.image }} style={styles.modalImage} />
+                </View>
+
+                {/* Product Details */}
+                <View style={styles.modalDetailsContainer}>
+                  <Text style={styles.modalTitle}>{selectedProduct.title}</Text>
+                  <Text style={styles.modalDescription}>{selectedProduct.description}</Text>
+                  <Text style={styles.modalPrice}>{selectedProduct.price}</Text>
+                </View>
+
+                {/* Divider */}
+                <View style={styles.modalDivider} />
+
+                {/* Customer Reviews Section */}
+                <Text style={styles.reviewTitle}>Customer Reviews</Text>
+                <ScrollView style={styles.reviewContainer}>
+                  <View style={styles.reviewItem}>
+                    <Image source={Junmar} style={styles.reviewProfile} />
+                    <View style={styles.reviewContent}>
+                      <Text style={styles.reviewText}>"Great quality! Highly recommend."</Text>
+                      <Text style={styles.reviewAuthor}>- John Doe</Text>
+                    </View>
+                  </View>
+                  <View style={styles.reviewItem}>
+                    <Image source={Junmar} style={styles.reviewProfile} />
+                    <View style={styles.reviewContent}>
+                      <Text style={styles.reviewText}>"The fabric is so soft and comfortable."</Text>
+                      <Text style={styles.reviewAuthor}>- Jane Smith</Text>
+                    </View>
+                  </View>
+                  <View style={styles.reviewItem}>
+                    <Image source={Junmar} style={styles.reviewProfile} />
+                    <View style={styles.reviewContent}>
+                      <Text style={styles.reviewText}>"Worth every penny. Will buy again!"</Text>
+                      <Text style={styles.reviewAuthor}>- Alex Johnson</Text>
+                    </View>
+                  </View>
+                </ScrollView>
+
+                {/* Buttons */}
+                <View style={styles.modalButtons}>
+                  <TouchableOpacity style={styles.modalButton} onPress={handleAddToCart}>
+                    <Text style={styles.modalButtonText}>Add to Cart</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.modalButton} onPress={handleBuyNow}>
+                    <Text style={styles.modalButtonText}>Buy Now</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {/* Cancel Button */}
+                <TouchableOpacity style={styles.modalCancelButton} onPress={() => setModalVisible(false)}>
+                  <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+      </Modal>
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
@@ -313,6 +405,136 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#4776E6',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dark overlay for focus
+  },
+  modalContent: {
+    width: '90%',
+    backgroundColor: 'white',
+    borderRadius: 20, // Rounded corners
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 10, // Shadow for Android
+  },
+  modalImageContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  modalImage: {
+    width: 150,
+    height: 150,
+    borderRadius: 10,
+  },
+  modalDetailsContainer: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 15,
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+    textAlign: 'center',
+  },
+  modalDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 10,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
+  modalPrice: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4776E6',
+    marginBottom: 10,
+  },
+  modalDivider: {
+    width: '100%',
+    height: 1,
+    backgroundColor: '#ddd',
+    marginVertical: 15,
+  },
+  reviewTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  reviewContainer: {
+    maxHeight: 150, // Limit the height of the review section
+    width: '100%',
+    marginBottom: 20,
+  },
+  reviewItem: {
+    flexDirection: 'row', // Align profile image and text horizontally
+    alignItems: 'flex-start',
+    marginBottom: 15,
+    paddingHorizontal: 10,
+  },
+  reviewProfile: {
+    width: 40,
+    height: 40,
+    borderRadius: 20, // Circular profile image
+    marginRight: 10,
+  },
+  reviewContent: {
+    flex: 1, // Allow the text to take up remaining space
+  },
+  reviewText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5,
+    textAlign: 'left', // Align text to the left
+  },
+  reviewAuthor: {
+    fontSize: 12,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'left', // Align text to the left
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    marginTop: 10,
+  },
+  modalButton: {
+    flex: 1,
+    marginHorizontal: 5,
+    backgroundColor: '#4776E6',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  modalCancelButton: {
+    marginTop: 15,
+    backgroundColor: '#FF3B30', // Red for cancel
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalCancelButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   bottomNav: {
     flexDirection: 'row',

@@ -386,6 +386,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     backgroundColor: '#4776E6', // Consistent header color
+    height:130,
+    marginBottom: 20,
   },
   title: {
     fontSize: 20,

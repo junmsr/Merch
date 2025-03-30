@@ -1,7 +1,6 @@
-import React, { useState, useRef } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Animated } from 'react-native';
+import React, { useState, useRef, useCallback } from 'react';
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
 const cartItems = [
@@ -76,46 +75,28 @@ const CartScreen = () => {
     setItems(items.filter(item => item.id !== id));
   };
 
-  const renderCartItems = () => {
-    if (items.length === 0) {
-      return (
-        <View style={styles.emptyCartContainer}>
-          <Image
-            source={{ uri: "https://via.placeholder.com/200x150" }}
-            style={styles.emptyCartImage}
-          />
-          <Text style={styles.emptyCartText}>Your cart is empty!</Text>
-          <TouchableOpacity onPress={() => router.push('/dashboard')} style={styles.shopNowButton}>
-            <Text style={styles.shopNowText}>Shop Now</Text>
+  const renderCartItem = useCallback(({ item }) => (
+    <View style={styles.cartItem}>
+      <Image source={{ uri: item.image }} style={styles.cartImage} />
+      <View style={styles.itemDetails}>
+        <Text style={styles.itemTitle}>{item.title}</Text>
+        <Text style={styles.itemDescription}>{item.description}</Text>
+        <Text style={styles.itemPrice}>₱{item.price}</Text>
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity onPress={() => handleDecrease(item.id)}>
+            <Ionicons name="remove-circle" size={24} color="#4776E6" />
+          </TouchableOpacity>
+          <Text style={styles.quantityText}>{item.quantity}</Text>
+          <TouchableOpacity onPress={() => handleIncrease(item.id)}>
+            <Ionicons name="add-circle" size={24} color="#4776E6" />
           </TouchableOpacity>
         </View>
-      );
-    }
-
-    return items.map(item => (
-      <Animated.View key={item.id} style={styles.cartItem}>
-        <Image source={{ uri: item.image }} style={styles.cartImage} />
-        <View style={styles.itemDetails}>
-          <Text style={styles.itemTitle}>{item.title}</Text>
-          <Text style={styles.itemDescription}>{item.description}</Text>
-          <Text style={styles.itemPrice}>₱{item.price}</Text>
-          <View style={styles.quantityContainer}>
-            <TouchableOpacity onPress={() => handleDecrease(item.id)}>
-              <Ionicons name="remove-circle" size={24} color="#4776E6" />
-            </TouchableOpacity>
-            <Text style={styles.quantityText}>{item.quantity}</Text>
-            <TouchableOpacity onPress={() => handleIncrease(item.id)}>
-              <Ionicons name="add-circle" size={24} color="#4776E6" />
-            </TouchableOpacity>
-          </View>
-          {/* Remove Product Button with Icon */}
-          <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeButton}>
-            <Ionicons name="trash" size={20} color="white" />
-          </TouchableOpacity>
-        </View>
-      </Animated.View>
-    ));
-  };
+        <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeButton}>
+          <Ionicons name="trash" size={20} color="white" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  ), [items]);
 
   return (
     <View style={styles.container}>
@@ -127,17 +108,34 @@ const CartScreen = () => {
       </View>
 
       {/* Cart Items */}
-      <ScrollView contentContainerStyle={styles.cartContainer}>
-        {renderCartItems()}
-        {/* Add padding to the bottom of the scroll view */}
-        <View style={{ height: 100 }} />
-      </ScrollView>
+      {items.length > 0 ? (
+        <FlatList
+          data={items}
+          renderItem={renderCartItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.cartContainer}
+        />
+      ) : (
+        <View style={styles.emptyCartContainer}>
+          <Image
+            source={{ uri: "https://via.placeholder.com/200x150" }}
+            style={styles.emptyCartImage}
+          />
+          <Text style={styles.emptyCartText}>Your cart is empty!</Text>
+          <TouchableOpacity onPress={() => router.push('/dashboard')} style={styles.shopNowButton}>
+            <Text style={styles.shopNowText}>Shop Now</Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* Total and Checkout */}
       {items.length > 0 && (
         <View style={styles.totalContainer}>
           <Text style={styles.totalText}>Total: ₱{totalPrice}</Text>
-          <TouchableOpacity style={styles.checkoutButton}>
+          <TouchableOpacity
+            style={[styles.checkoutButton, { opacity: items.length > 0 ? 1 : 0.5 }]}
+            disabled={items.length === 0}
+          >
             <View style={styles.checkoutSolid}>
               <Text style={styles.checkoutText}>Checkout</Text>
             </View>
@@ -195,6 +193,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
     elevation: 3,
+    height:130,
   },
   headerTitle: {
     fontSize: 20,
