@@ -1,7 +1,6 @@
 import React, { useRef, useState } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, TextInput, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 
 import cscLogo from '../assets/images/logo.png';
@@ -96,7 +95,7 @@ const DashboardScreen = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.header}>
+      <View style={styles.header}>
         <View style={styles.headerContent}>
           <Image source={cscLogo} style={styles.logo} />
           <Text style={styles.title}>E-Merch</Text>
@@ -105,26 +104,15 @@ const DashboardScreen = () => {
           <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
           <TextInput placeholder="Search products..." style={styles.searchInput} />
         </View>
-      </LinearGradient>
+      </View>
 
       {/* Categories */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
         {categories.map((category, index) => (
-          <TouchableOpacity
-            key={index}
-            style={styles.category}
-            activeOpacity={0.8}
-            onPress={() => {
-              const bounce = new Animated.Value(1);
-              Animated.sequence([
-                Animated.timing(bounce, { toValue: 1.2, duration: 100, useNativeDriver: true }),
-                Animated.timing(bounce, { toValue: 1, duration: 100, useNativeDriver: true }),
-              ]).start();
-            }}
-          >
-            <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.categoryGradient}>
+          <TouchableOpacity key={index} style={styles.category} activeOpacity={0.8}>
+            <View style={styles.categoryBox}>
               <Image source={category.image} style={styles.categoryImage} />
-            </LinearGradient>
+            </View>
             <Text style={styles.categoryText}>{category.name}</Text>
           </TouchableOpacity>
         ))}
@@ -137,9 +125,9 @@ const DashboardScreen = () => {
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>{section.title}</Text>
               <TouchableOpacity>
-                <LinearGradient colors={['#8E54E9', '#4776E6']} style={styles.viewAllButton}>
+                <View style={styles.viewAllButton}>
                   <Text style={styles.viewAllText}>View All</Text>
-                </LinearGradient>
+                </View>
               </TouchableOpacity>
             </View>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
@@ -163,7 +151,7 @@ const DashboardScreen = () => {
           onPress={() => handlePress(scaleHome, opacityHome, '/dashboard', 'home')}
         >
           <Animated.View style={{ transform: [{ scale: scaleHome }] }}>
-            <Ionicons name="home" size={28} color={activeTab === 'home' ? '#8E54E9' : '#888'} />
+            <Ionicons name="home" size={28} color={activeTab === 'home' ? '#4776E6' : '#888'} />
           </Animated.View>
           <Animated.Text style={[styles.navText, { opacity: opacityHome }]}>Home</Animated.Text>
         </TouchableOpacity>
@@ -173,7 +161,7 @@ const DashboardScreen = () => {
           onPress={() => handlePress(scaleCart, opacityCart, '/cart', 'cart')}
         >
           <Animated.View style={{ transform: [{ scale: scaleCart }] }}>
-            <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#8E54E9' : '#888'} />
+            <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#4776E6' : '#888'} />
           </Animated.View>
           <Animated.Text style={[styles.navText, { opacity: opacityCart }]}>Cart</Animated.Text>
         </TouchableOpacity>
@@ -183,7 +171,7 @@ const DashboardScreen = () => {
           onPress={() => handlePress(scaleProfile, opacityProfile, '/profile', 'profile')}
         >
           <Animated.View style={{ transform: [{ scale: scaleProfile }] }}>
-            <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#8E54E9' : '#888'} />
+            <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#4776E6' : '#888'} />
           </Animated.View>
           <Animated.Text style={[styles.navText, { opacity: opacityProfile }]}>Profile</Animated.Text>
         </TouchableOpacity>
@@ -195,9 +183,10 @@ const DashboardScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f0f4f7',
+    backgroundColor: '#f4f4f4',
   },
   header: {
+    backgroundColor: '#4776E6',
     padding: 16,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -212,12 +201,14 @@ const styles = StyleSheet.create({
     width: 50,
     height: 50,
     marginRight: 10,
-    borderRadius: 25, // Optional for rounded logo
+    borderRadius: 25,
+    marginTop: 50,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
+    marginTop: 47,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -241,16 +232,17 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   categoryContainer: {
-    paddingVertical: 10,
+    paddingVertical: 25,
   },
   category: {
     alignItems: 'center',
     marginHorizontal: 8,
   },
-  categoryGradient: {
+  categoryBox: {
     width: 70,
     height: 70,
     borderRadius: 35,
+    backgroundColor: '#f9f9f9',
     justifyContent: 'center',
     alignItems: 'center',
     shadowColor: '#000',
@@ -287,6 +279,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 20,
+    backgroundColor: '#4776E6',
   },
   viewAllText: {
     fontSize: 14,
@@ -319,7 +312,7 @@ const styles = StyleSheet.create({
   itemPrice: {
     fontSize: 14,
     fontWeight: 'bold',
-    color: '#8E54E9',
+    color: '#4776E6',
   },
   bottomNav: {
     flexDirection: 'row',
