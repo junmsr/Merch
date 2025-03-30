@@ -4,6 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 
+import Logo from '../assets/images/Vintage.png';
+
 import cscLogo from '../assets/images/logo.png';
 import IT from '../assets/images/IT.png';
 import CHEM from '../assets/images/CHEM.png';
@@ -123,7 +125,7 @@ const DashboardScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Image source={cscLogo} style={styles.logo} />
+          <Image source={Logo} style={styles.logo} />
           <Text style={styles.title}>E-Merch</Text>
         </View>
         <View style={styles.searchContainer}>

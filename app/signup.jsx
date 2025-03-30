@@ -7,7 +7,7 @@ import Svg, { Path } from 'react-native-svg';
 import { useLayoutEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
 
-import cscLogo from "../assets/images/logo.png";
+import cscLogo from "../assets/images/Vintage.png";
 
 const { width } = Dimensions.get('window');
 
@@ -79,7 +79,7 @@ const Signup = () => {
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={selectedCourse}
-              onValueChange={(itemValue) => setSelectedCourse(itemValue)}
+              onValueChange={(itemValue) => setSelectedCourse(itemValue)} // Updates state correctly
               style={styles.picker}
             >
               <Picker.Item label="Select your course" value="" />
@@ -166,6 +166,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.9,
     shadowRadius: 4,
     elevation: 6,
+    borderRadius: 100,
   },
 
   // Input card container
@@ -226,10 +227,14 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginBottom: 15,
     backgroundColor: '#f9f9f9',
+    overflow: 'hidden', // Ensures the picker fits within the rounded corners
+    height: 45, // Ensures consistent height with other input fields
+    justifyContent: 'center', // Centers the picker text vertically
   },
   picker: {
-    height: 45,
-    width: '100%',
+    flex: 1, // Ensures the picker expands to fill its container
+    color: '#0000', // Text color for the picker
+    fontSize: 16, // Adjust font size for better readability
   },
 
   // Password container

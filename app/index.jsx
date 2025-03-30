@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, Animated, Dimensions, TouchableOpacity }
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import logoImage from '../assets/images/logo.png';
+import logoImage from '../assets/images/Vintage.png';
 
 const { width } = Dimensions.get('window');
 
@@ -59,8 +59,12 @@ const WelcomeScreen = () => {
           </Svg>
         </View>
 
-        {/* Logo */}
-        <Animated.Image source={logoImage} style={[styles.logo]} />
+        {/* Logo and Title Container */}
+        <View style={styles.logoTitleContainer}>
+          <Animated.Image source={logoImage} style={[styles.logo]} />
+          <View style={styles.verticalDivider} />
+          <Text style={styles.titleText}>CShop</Text>
+        </View>
 
         {/* Buttons */}
         <Animated.View style={styles.buttonContainer}>
@@ -96,6 +100,7 @@ const styles = StyleSheet.create({
   splashLogo: {
     width: 200,
     height: 200,
+    borderRadius: 100,
   },
   waveContainer: {
     position: 'absolute',
@@ -128,6 +133,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.9,
     shadowRadius: 4,
     elevation: 6,
+    borderRadius: 100,
   },
   buttonContainer: {
     width: '100%',
@@ -174,6 +180,24 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#4776E6',
     marginVertical: 10,
+  },
+  logoTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop: -100,
+  },
+  verticalDivider: {
+    width: 1,
+    height:250,
+    backgroundColor: '#ccc',
+    marginHorizontal: 10,
+  },
+  titleText: {
+    fontSize: 28, // Increased font size for better visibility
+    fontWeight: 'bold',
+    fontFamily: 'sans-serif', // Set a specific font family (use a custom font if needed)
+    color: '#4776E6',
   },
 });
 
