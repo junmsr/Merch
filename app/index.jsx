@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, Image, Animated, Dimensions, TouchableOpacity }
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import logoImage from '../assets/images/logo.png';
+import logoImage from '../assets/images/Vintage.png';
 
 const { width } = Dimensions.get('window');
 
@@ -42,6 +42,55 @@ const WelcomeScreen = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
+  const glitchTranslateX = useRef(new Animated.Value(0)).current;
+  const glitchTranslateY = useRef(new Animated.Value(0)).current;
+  const glitchOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (!isLoading) {
+      const glitchInterval = setInterval(() => {
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(glitchTranslateX, {
+              toValue: Math.random() * 10 - 5, // Random horizontal shift
+              duration: 50,
+              useNativeDriver: true,
+            }),
+            Animated.timing(glitchTranslateY, {
+              toValue: Math.random() * 10 - 5, // Random vertical shift
+              duration: 50,
+              useNativeDriver: true,
+            }),
+            Animated.timing(glitchOpacity, {
+              toValue: Math.random() > 0.5 ? 0.7 : 1, // Random opacity flicker
+              duration: 50,
+              useNativeDriver: true,
+            }),
+          ]),
+          Animated.parallel([
+            Animated.timing(glitchTranslateX, {
+              toValue: 0, // Reset horizontal shift
+              duration: 50,
+              useNativeDriver: true,
+            }),
+            Animated.timing(glitchTranslateY, {
+              toValue: 0, // Reset vertical shift
+              duration: 50,
+              useNativeDriver: true,
+            }),
+            Animated.timing(glitchOpacity, {
+              toValue: 1, // Reset opacity
+              duration: 50,
+              useNativeDriver: true,
+            }),
+          ]),
+        ]).start();
+      }, 500); // Glitch effect every 500ms
+
+      return () => clearInterval(glitchInterval); // Cleanup interval on unmount
+    }
+  }, [isLoading]);
+
   if (isLoading) {
     return <SplashScreen onFinish={() => setIsLoading(false)} />;
   }
@@ -59,8 +108,25 @@ const WelcomeScreen = () => {
           </Svg>
         </View>
 
-        {/* Logo */}
-        <Animated.Image source={logoImage} style={[styles.logo]} />
+        {/* Logo and Title Container */}
+        <View style={styles.logoTitleContainer}>
+          <Animated.Image source={logoImage} style={[styles.logo]} />
+          <View style={styles.verticalDivider} />
+          <Animated.Text
+            style={[
+              styles.titleText,
+              {
+                transform: [
+                  { translateX: glitchTranslateX },
+                  { translateY: glitchTranslateY },
+                ],
+              },
+              { opacity: glitchOpacity },
+            ]}
+          >
+            CShop
+          </Animated.Text>
+        </View>
 
         {/* Buttons */}
         <Animated.View style={styles.buttonContainer}>
@@ -78,6 +144,11 @@ const WelcomeScreen = () => {
             <Text style={styles.loginButtonText}>Login</Text>
           </TouchableOpacity>
         </Animated.View>
+
+        {/* Footer */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>© 2025 CShop. All rights reserved.</Text>
+        </View>
       </View>
     </LinearGradient>
   );
@@ -96,6 +167,7 @@ const styles = StyleSheet.create({
   splashLogo: {
     width: 200,
     height: 200,
+    borderRadius: 100,
   },
   waveContainer: {
     position: 'absolute',
@@ -106,7 +178,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between', // Ensures space between content and footer
     width: '100%',
   },
   wave: {
@@ -121,13 +193,14 @@ const styles = StyleSheet.create({
   logo: {
     width: 160,
     height: 160,
-    marginBottom: 20,
-    marginTop: -100,
+    marginBottom: 0,
+    marginTop: 300,
     shadowColor: '#000',
     shadowOffset: { width: 1, height: 1 },
     shadowOpacity: 0.9,
     shadowRadius: 4,
     elevation: 6,
+    borderRadius: 100,
   },
   buttonContainer: {
     width: '100%',
@@ -172,8 +245,56 @@ const styles = StyleSheet.create({
   divider: {
     width: '85%',
     height: 1,
-    backgroundColor: '#4776E6',
+    padding:1,
+    borderRadius: 10,
+    backgroundColor: 'gray',
     marginVertical: 10,
+    opacity: 0.3,
+  },
+  logoTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+    marginTop: -50,
+  },
+  verticalDivider: {
+    width: 1,
+    height:130,
+    backgroundColor: 'white',
+    marginHorizontal: 10,
+    marginTop: 290,
+    padding:2,
+    borderRadius: 10,
+  },
+  titleText: {
+    fontSize: 50, // Increased font size for better visibility
+    fontWeight: 'bold',
+    fontFamily: 'sans-serif', // Set a specific font family (use a custom font if needed)
+    color: 'white',
+    marginTop: 290,
+    
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#ccc',
+    width: '100%',
+    backgroundColor: '#f9f9f9',
+  },
+  footerText: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 10,
+  },
+  socialIcons: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  socialIcon: {
+    width: 30,
+    height: 30,
+    marginHorizontal: 10,
   },
 });
 

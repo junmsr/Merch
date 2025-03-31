@@ -1,8 +1,10 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef, useState, useLayoutEffect, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, TextInput, Animated, Modal, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
+
+import Logo from '../assets/images/Vintage.png';
 
 import cscLogo from '../assets/images/logo.png';
 import IT from '../assets/images/IT.png';
@@ -58,6 +60,54 @@ const DashboardScreen = () => {
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  // Animation references for glitch effect
+  const glitchTranslateX = useRef(new Animated.Value(0)).current;
+  const glitchTranslateY = useRef(new Animated.Value(0)).current;
+  const glitchOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const glitchAnimation = () => {
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(glitchTranslateX, {
+            toValue: Math.random() * 10 - 5, // Random horizontal offset
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glitchTranslateY, {
+            toValue: Math.random() * 10 - 5, // Random vertical offset
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glitchOpacity, {
+            toValue: 0.5, // Reduce opacity during glitch
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(glitchTranslateX, {
+            toValue: 0, // Reset horizontal offset
+            duration: 50,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glitchTranslateY, {
+            toValue: 0, // Reset vertical offset
+            duration: 50,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glitchOpacity, {
+            toValue: 1, // Reset opacity
+            duration: 50,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start(() => glitchAnimation()); // Loop the animation
+    };
+
+    glitchAnimation();
+  }, [glitchTranslateX, glitchTranslateY, glitchOpacity]);
 
   // Animation references for each tab
   const scaleHome = useRef(new Animated.Value(1)).current;
@@ -123,8 +173,21 @@ const DashboardScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Image source={cscLogo} style={styles.logo} />
-          <Text style={styles.title}>E-Merch</Text>
+          <Image source={Logo} style={styles.logo} />
+          <Animated.Text
+            style={[
+              styles.title,
+              {
+                transform: [
+                  { translateX: glitchTranslateX },
+                  { translateY: glitchTranslateY },
+                ],
+                opacity: glitchOpacity,
+              },
+            ]}
+          >
+            CShop
+          </Animated.Text>
         </View>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
