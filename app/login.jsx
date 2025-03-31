@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 
-import logoImage from '../assets/images/logo.png';
+import logoImage from '../assets/images/Vintage.png';
 
 const { width } = Dimensions.get('window');
 
@@ -167,6 +167,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.9,
     shadowRadius: 4,
     elevation: 6,
+    borderRadius: 100,
   },
   inputCard: {
     width: '89%',
