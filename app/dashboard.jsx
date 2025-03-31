@@ -330,9 +330,10 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   categoryContainer: {
-    paddingVertical: 25,
+    paddingVertical: 20,
   },
   category: {
+    marginBottom: 30,
     alignItems: 'center',
     marginHorizontal: 8,
   },

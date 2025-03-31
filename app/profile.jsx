@@ -393,7 +393,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#4776E6', 
     height:130,
-    marginBottom: 20,
+    marginBottom: 5,
   },
   title: {
     fontSize: 20,
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
   },
   horizontalScroll: {
     flexDirection: 'row',
-    marginTop: 10,
+    marginTop: 20,
   },
   purchaseCard: {
     alignItems: 'center',
