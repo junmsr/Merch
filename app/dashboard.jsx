@@ -1,8 +1,10 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
+import React, { useRef, useState, useLayoutEffect, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, TextInput, Animated, Modal, Button } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
+
+import Logo from '../assets/images/Vintage.png';
 
 import cscLogo from '../assets/images/logo.png';
 import IT from '../assets/images/IT.png';
@@ -16,7 +18,7 @@ import Junmar from '../assets/images/Junmar.png'; // Import the Junmar.png image
 const { width } = Dimensions.get('window');
 
 const categories = [
-  { name: "Circuits", image: IT },
+  { name: "Circuits", image: IT},
   { name: "Chess", image: CHEM },
   { name: "CSC", image: LOGO },
   { name: "Symbiosis", image: BIO },
@@ -58,6 +60,54 @@ const DashboardScreen = () => {
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  // Animation references for glitch effect
+  const glitchTranslateX = useRef(new Animated.Value(0)).current;
+  const glitchTranslateY = useRef(new Animated.Value(0)).current;
+  const glitchOpacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    const glitchAnimation = () => {
+      Animated.sequence([
+        Animated.parallel([
+          Animated.timing(glitchTranslateX, {
+            toValue: Math.random() * 10 - 5, // Random horizontal offset
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glitchTranslateY, {
+            toValue: Math.random() * 10 - 5, // Random vertical offset
+            duration: 500,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glitchOpacity, {
+            toValue: 0.5, // Reduce opacity during glitch
+            duration: 500,
+            useNativeDriver: true,
+          }),
+        ]),
+        Animated.parallel([
+          Animated.timing(glitchTranslateX, {
+            toValue: 0, // Reset horizontal offset
+            duration: 50,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glitchTranslateY, {
+            toValue: 0, // Reset vertical offset
+            duration: 50,
+            useNativeDriver: true,
+          }),
+          Animated.timing(glitchOpacity, {
+            toValue: 1, // Reset opacity
+            duration: 50,
+            useNativeDriver: true,
+          }),
+        ]),
+      ]).start(() => glitchAnimation()); // Loop the animation
+    };
+
+    glitchAnimation();
+  }, [glitchTranslateX, glitchTranslateY, glitchOpacity]);
 
   // Animation references for each tab
   const scaleHome = useRef(new Animated.Value(1)).current;
@@ -123,8 +173,21 @@ const DashboardScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerContent}>
-          <Image source={cscLogo} style={styles.logo} />
-          <Text style={styles.title}>E-Merch</Text>
+          <Image source={Logo} style={styles.logo} />
+          <Animated.Text
+            style={[
+              styles.title,
+              {
+                transform: [
+                  { translateX: glitchTranslateX },
+                  { translateY: glitchTranslateY },
+                ],
+                opacity: glitchOpacity,
+              },
+            ]}
+          >
+            CShop
+          </Animated.Text>
         </View>
         <View style={styles.searchContainer}>
           <Ionicons name="search" size={20} color="#888" style={styles.searchIcon} />
@@ -134,15 +197,43 @@ const DashboardScreen = () => {
 
       {/* Categories */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
-        {categories.map((category, index) => (
-          <TouchableOpacity key={index} style={styles.category} activeOpacity={0.8}>
-            <View style={styles.categoryBox}>
-              <Image source={category.image} style={styles.categoryImage} />
-            </View>
-            <Text style={styles.categoryText}>{category.name}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+  {categories.map((category, index) => (
+    <TouchableOpacity
+      key={index}
+      style={styles.category}
+      activeOpacity={0.8}
+      onPress={() => {
+        switch (category.name) {
+          case 'Circuits':
+            router.push('/circuits');
+            break;
+          case 'Chess':
+            router.push('/chess');
+            break;
+          case 'CSC':
+            router.push('/csc');
+            break;
+          case 'Symbiosis':
+            router.push('/symbiosis');
+            break;
+          case 'Access':
+            router.push('/access');
+            break;
+          case 'STORM':
+            router.push('/storm');
+            break;
+          default:
+            break;
+        }
+      }}
+    >
+      <View style={styles.categoryBox}>
+        <Image source={category.image} style={styles.categoryImage} />
+      </View>
+      <Text style={styles.categoryText}>{category.name}</Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
 
       {/* Sections */}
       <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
@@ -336,6 +427,8 @@ const styles = StyleSheet.create({
     marginBottom: 30,
     alignItems: 'center',
     marginHorizontal: 8,
+    marginBottom: 15,
+    marginTop: -15,
   },
   categoryBox: {
     width: 70,
@@ -549,7 +642,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     backgroundColor: 'white',
     position: 'absolute',
-    bottom: 0,
+    bottom: 5,
     left: 0,
     right: 0,
     borderTopWidth: 1,

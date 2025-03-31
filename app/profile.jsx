@@ -242,7 +242,8 @@ const ProfileScreen = () => {
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#4776E6" />
+        {/* Use the Vintage.png logo */}
+        <Image source={require('../assets/images/Vintage.png')} style={styles.loadingLogo} />
         <Text style={styles.loadingText}>Loading resources...</Text>
       </View>
     );
@@ -280,52 +281,25 @@ const ProfileScreen = () => {
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>My Purchases</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-            <TouchableOpacity
-              style={[
-                styles.purchaseCard,
-                activeSection === 'To Pay' && styles.activePurchaseCard,
-              ]}
-              onPress={() => handleSectionPress('To Pay')}
-            >
-              <MaterialCommunityIcons name="credit-card" size={32} color="#4776E6" />
-              <Text style={styles.purchaseText}>To Pay</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.purchaseCard,
-                activeSection === 'To Ship' && styles.activePurchaseCard,
-              ]}
-              onPress={() => handleSectionPress('To Ship')}
-            >
-              <MaterialCommunityIcons name="truck" size={32} color="#4776E6" />
-              <Text style={styles.purchaseText}>To Ship</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.purchaseCard,
-                activeSection === 'To Receive' && styles.activePurchaseCard,
-              ]}
-              onPress={() => handleSectionPress('To Receive')}
-            >
-              <MaterialCommunityIcons name="package-variant" size={32} color="#4776E6" />
-              <Text style={styles.purchaseText}>To Receive</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.purchaseCard,
-                activeSection === 'To Rate' && styles.activePurchaseCard,
-              ]}
-              onPress={() => handleSectionPress('To Rate')}
-            >
-              <MaterialCommunityIcons name="star" size={32} color="#4776E6" />
-              <Text style={styles.purchaseText}>To Rate</Text>
-            </TouchableOpacity>
+            {['To Pay', 'To Ship', 'To Receive', 'To Rate'].map((section) => (
+              <TouchableOpacity
+                key={section}
+                style={[
+                  styles.purchaseCard,
+                  activeSection === section && styles.activePurchaseCard,
+                ]}
+                onPress={() => handleSectionPress(section)}
+              >
+                <MaterialCommunityIcons
+                  name={section === 'To Pay' ? 'credit-card' : section === 'To Ship' ? 'truck' : section === 'To Receive' ? 'package-variant' : 'star'}
+                  size={32}
+                  color={activeSection === section ? '#4776E6' : '#888'}
+                />
+                <Text style={styles.purchaseText}>{section}</Text>
+              </TouchableOpacity>
+            ))}
           </ScrollView>
-          {/* Render Products */}
-          {renderProducts('To Pay')}
-          {renderProducts('To Ship')}
-          {renderProducts('To Receive')}
-          {renderProducts('To Rate')}
+          {activeSection && renderProducts(activeSection)}
         </View>
 
         {/* Account Options */}
@@ -347,37 +321,37 @@ const ProfileScreen = () => {
       </ScrollView>
 
       {/* Fixed Bottom Navigation */}
-      <View style={styles.bottomNav}>
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => handlePress(scaleHome, opacityHome, '/dashboard', 'home')}
-        >
-          <Animated.View style={{ transform: [{ scale: scaleHome }] }}>
-            <Ionicons name="home" size={28} color={activeTab === 'home' ? '#4776E6' : '#888'} />
-          </Animated.View>
-          <Animated.Text style={[styles.navText, { opacity: opacityHome }]}>Home</Animated.Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => handlePress(scaleCart, opacityCart, '/cart', 'cart')}
-        >
-          <Animated.View style={{ transform: [{ scale: scaleCart }] }}>
-            <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#4776E6' : '#888'} />
-          </Animated.View>
-          <Animated.Text style={[styles.navText, { opacity: opacityCart }]}>Cart</Animated.Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.navItem}
-          onPress={() => handlePress(scaleProfile, opacityProfile, '/profile', 'profile')}
-        >
-          <Animated.View style={{ transform: [{ scale: scaleProfile }] }}>
-            <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#4776E6' : '#888'} />
-          </Animated.View>
-          <Animated.Text style={[styles.navText, { opacity: opacityProfile }]}>Profile</Animated.Text>
-        </TouchableOpacity>
-      </View>
+     <View style={styles.bottomNav}>
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => handlePress(scaleHome, opacityHome, '/dashboard', 'home')}
+            >
+              <Animated.View style={{ transform: [{ scale: scaleHome }] }}>
+                <Ionicons name="home" size={28} color={activeTab === 'home' ? '#4776E6' : '#888'} />
+              </Animated.View>
+              <Animated.Text style={[styles.navText, { opacity: opacityHome }]}>Home</Animated.Text>
+            </TouchableOpacity>
+    
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => handlePress(scaleCart, opacityCart, '/cart', 'cart')}
+            >
+              <Animated.View style={{ transform: [{ scale: scaleCart }] }}>
+                <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#4776E6' : '#888'} />
+              </Animated.View>
+              <Animated.Text style={[styles.navText, { opacity: opacityCart }]}>Cart</Animated.Text>
+            </TouchableOpacity>
+    
+            <TouchableOpacity
+              style={styles.navItem}
+              onPress={() => handlePress(scaleProfile, opacityProfile, '/profile', 'profile')}
+            >
+              <Animated.View style={{ transform: [{ scale: scaleProfile }] }}>
+                <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#4776E6' : '#888'} />
+              </Animated.View>
+              <Animated.Text style={[styles.navText, { opacity: opacityProfile }]}>Profile</Animated.Text>
+            </TouchableOpacity>
+          </View>
     </View>
   );
 };
@@ -402,12 +376,15 @@ const styles = StyleSheet.create({
   },
   profileCard: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginVertical: 20,
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
-    elevation: 5,
+    elevation: 3,
   },
   profileCardSolid: {
     flexDirection: 'row', // Align items horizontally
@@ -422,19 +399,19 @@ const styles = StyleSheet.create({
     flex: 1, // Allow text to take up remaining space
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
   },
   profileName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: 'white',
   },
   profileEmail: {
-    fontSize: 14,
+    fontSize: 16,
     color: 'white',
-    marginTop: 4,
   },
   section: {
     backgroundColor: 'white',
@@ -575,11 +552,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     alignItems: 'center',
     paddingVertical: 10,
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderTopWidth: 1,
     borderTopColor: '#ddd',
     position: 'absolute', // Fix the navigation at the bottom
-    bottom: 0,
+    bottom: 5,
     left: 0,
     right: 0,
     elevation: 5, // Add shadow for better visibility
@@ -648,7 +625,7 @@ const styles = StyleSheet.create({
   purchaseCard: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'white',
+    backgroundColor: '#f9f9f9',
     padding: 16,
     borderRadius: 10,
     marginRight: 10,
@@ -659,6 +636,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
+  },
+  activePurchaseCard: {
+    backgroundColor: '#4776E6',
   },
   purchaseText: {
     marginTop: 8,
@@ -673,12 +653,19 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#f4f4f4',
+    backgroundColor: 'white',
   },
   loadingText: {
     marginTop: 10,
     fontSize: 16,
     color: '#333',
+  },
+  loadingLogo: {
+    width: 150, // Adjust the width as needed
+    height: 150, // Adjust the height as needed
+    marginBottom: 20, // Add spacing between the logo and the text
+    resizeMode: 'contain', // Ensure the logo maintains its aspect ratio
+    borderRadius: 100,
   },
 });
 
