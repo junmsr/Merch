@@ -39,7 +39,7 @@ export default function RootLayout() {
         <Stack.Screen name="circuits" options={{ headerShown: false }} />
         <Stack.Screen name="chess" options={{ headerShown: false }} />
         <Stack.Screen name="csc" options={{ headerShown: false }} />
-        <Stack.Screen name="symbioses" options={{ headerShown: false }} />
+        <Stack.Screen name="symbiosis" options={{ headerShown: false }} />
         <Stack.Screen name="access" options={{ headerShown: false }} />
         <Stack.Screen name="storm" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />

@@ -5,10 +5,15 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
+import * as Facebook from 'expo-auth-session/providers/facebook';
+import * as WebBrowser from 'expo-web-browser';
+import * as AuthSession from 'expo-auth-session'; // Correct import for AuthSession
 
 import logoImage from '../assets/images/Vintage.png';
 
 const { width } = Dimensions.get('window');
+
+WebBrowser.maybeCompleteAuthSession();
 
 const LoginScreen = () => {
   const router = useRouter();
@@ -43,7 +48,43 @@ const LoginScreen = () => {
   }, []);
 
   const handleLogin = () => {
-    router.push('/dashboard');
+    router.push('/dashboard');console.log('Login Screen Loaded');
+console.log('Email:', email);
+console.log('Password:', password);
+console.log('Password Visible:', passwordVisible);
+  };
+
+  // Generate the redirect URI
+  const redirectUri = 'https://auth.expo.io/@arnthegreat/csshop';
+  console.log('Hardcoded Redirect URI:', redirectUri); // Log the redirect URI for debugging
+
+  const [request, response, promptAsync] = Facebook.useAuthRequest({
+    clientId: '1894410254425601', // Replace with your Facebook App ID
+    redirectUri, // Explicitly set the redirect URI
+  });
+
+  useEffect(() => {
+    console.log('Facebook Login Response:', JSON.stringify(response, null, 2)); // Log the full response for debugging
+
+    if (response?.type === 'success') {
+      const { access_token } = response.params;
+
+      if (access_token) {
+        console.log('Access token received:', access_token);
+        console.log('Navigating to /dashboard...');
+        router.push('/dashboard'); // Navigate to the dashboard
+      } else {
+        console.error('Access token not found in response.');
+      }
+    } else if (response?.type === 'error') {
+      console.error('Facebook Login Error:', response.error);
+    } else {
+      console.log('Unexpected response type:', response?.type);
+    }
+  }, [response]);
+
+  const handleFacebookLogin = () => {
+    promptAsync();
   };
 
   return (
@@ -106,7 +147,10 @@ const LoginScreen = () => {
           </View>
 
           <View style={styles.socialLoginContainer}>
-            <TouchableOpacity style={[styles.socialIconWrapper, { backgroundColor: '#3b5998' }]}>
+            <TouchableOpacity
+              style={[styles.socialIconWrapper, { backgroundColor: '#3b5998' }]}
+              onPress={handleFacebookLogin}
+            >
               <Ionicons name="logo-facebook" size={24} color="#fff" />
             </TouchableOpacity>
             <TouchableOpacity style={[styles.socialIconWrapper, { backgroundColor: '#db4437' }]}>
