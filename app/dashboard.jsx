@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import Logo from '../assets/images/Vintage.png';
 
-import cscLogo from '../assets/images/logo.png';
+// import cscLogo from '../assets/images/logo.png';
 import IT from '../assets/images/IT.png';
 import CHEM from '../assets/images/CHEM.png';
 import LOGO from '../assets/images/logo.png';
@@ -19,7 +19,7 @@ const { width } = Dimensions.get('window');
 
 const categories = [
   { name: "Circuits", image: IT},
-  { name: "Chess", image: CHEM },
+  { name: "Chess", image: CHEM },x
   { name: "CSC", image: LOGO },
   { name: "Symbiosis", image: BIO },
   { name: "Access", image: CS },
