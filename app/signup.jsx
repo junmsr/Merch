@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, TextInput, Image, TouchableOpacity, Pressable, Dimensions, Animated, Easing } from 'react-native';
-import { Picker } from '@react-native-picker/picker'; // Import Picker
+import { Picker } from '@react-native-picker/picker';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path } from 'react-native-svg';
@@ -20,9 +20,8 @@ const Signup = () => {
 
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-  const [selectedCourse, setSelectedCourse] = useState(''); // State for selected course
+  const [selectedCourse, setSelectedCourse] = useState('');
 
-  // Animation references
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const formTranslateY = useRef(new Animated.Value(50)).current;
 
@@ -45,7 +44,6 @@ const Signup = () => {
   return (
     <LinearGradient colors={['#4776E6', '#fff']} style={styles.gradient}>
       <View style={styles.container}>
-        {/* Wave Background */}
         <View style={styles.waveContainer}>
           <Svg height="500" width={width} viewBox="0 0 390 10" style={styles.wave}>
             <Path
@@ -55,10 +53,8 @@ const Signup = () => {
           </Svg>
         </View>
 
-        {/* Logo */}
         <Animated.Image source={cscLogo} style={[styles.logo, { opacity: logoOpacity }]} />
 
-        {/* Signup Form */}
         <Animated.View style={[styles.inputCard, { transform: [{ translateY: formTranslateY }] }]}>
           <Text style={styles.title}>Create Account</Text>
           <Text style={styles.subtitle}>Sign up to get started</Text>
@@ -75,11 +71,10 @@ const Signup = () => {
           <TextInput style={styles.input} placeholder="Student ID" placeholderTextColor="#aaa" />
           <TextInput style={styles.input} placeholder="Email" placeholderTextColor="#aaa" />
 
-          {/* College Course Picker */}
           <View style={styles.pickerContainer}>
             <Picker
               selectedValue={selectedCourse}
-              onValueChange={(itemValue) => setSelectedCourse(itemValue)} // Updates state correctly
+              onValueChange={(itemValue) => setSelectedCourse(itemValue)}
               style={styles.picker}
             >
               <Picker.Item label="Select your course" value="" />
@@ -115,7 +110,10 @@ const Signup = () => {
             </TouchableOpacity>
           </View>
 
-          <Pressable style={styles.signupButton}>
+          <Pressable
+            style={styles.signupButton}
+            onPress={() => navigation.navigate('admin')} // changed route from 'AdminDashboard'
+          >
             <Text style={styles.signupText}>SIGN UP</Text>
           </Pressable>
         </Animated.View>
@@ -125,20 +123,15 @@ const Signup = () => {
 };
 
 const styles = StyleSheet.create({
-  // Gradient background
   gradient: {
     flex: 1,
   },
-
-  // Main container
   container: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
   },
-
-  // Wave background
   waveContainer: {
     position: 'absolute',
     top: -250,
@@ -154,8 +147,6 @@ const styles = StyleSheet.create({
     shadowRadius: 9,
     elevation: 9,
   },
-
-  // Logo
   logo: {
     width: 160,
     height: 160,
@@ -168,8 +159,6 @@ const styles = StyleSheet.create({
     elevation: 6,
     borderRadius: 100,
   },
-
-  // Input card container
   inputCard: {
     width: '89%',
     backgroundColor: 'rgba(255, 255, 255, 0.55)',
@@ -181,8 +170,6 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 6,
   },
-
-  // Titles
   title: {
     fontSize: 26,
     fontWeight: 'bold',
@@ -196,8 +183,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
-
-  // Name input container
   nameContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -207,8 +192,6 @@ const styles = StyleSheet.create({
   inputWrapper: {
     width: '48%',
   },
-
-  // Input fields
   input: {
     width: '100%',
     height: 45,
@@ -219,25 +202,21 @@ const styles = StyleSheet.create({
     backgroundColor: '#f9f9f9',
     marginBottom: 15,
   },
-
-  // Picker container
   pickerContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 10,
     marginBottom: 15,
     backgroundColor: '#f9f9f9',
-    overflow: 'hidden', // Ensures the picker fits within the rounded corners
-    height: 45, // Ensures consistent height with other input fields
-    justifyContent: 'center', // Centers the picker text vertically
+    overflow: 'hidden',
+    height: 45,
+    justifyContent: 'center',
   },
   picker: {
-    flex: 1, // Ensures the picker expands to fill its container
-    color: '#0000', // Text color for the picker
-    fontSize: 16, // Adjust font size for better readability
+    flex: 1,
+    color: '#000',
+    fontSize: 16,
   },
-
-  // Password container
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -247,8 +226,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 15,
   },
-
-  // Signup button
   signupButton: {
     width: '100%',
     backgroundColor: '#4776E6',
