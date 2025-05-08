@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 
 import Logo from '../assets/images/Vintage.png';
 
-import cscLogo from '../assets/images/logo.png';
+// import cscLogo from '../assets/images/logo.png';
 import IT from '../assets/images/IT.png';
 import CHEM from '../assets/images/CHEM.png';
 import LOGO from '../assets/images/logo.png';
