@@ -19,7 +19,7 @@ const { width } = Dimensions.get('window');
 
 const categories = [
   { name: "Circuits", image: IT},
-  { name: "Chess", image: CHEM },x
+  { name: "Chess", image: CHEM },
   { name: "CSC", image: LOGO },
   { name: "Symbiosis", image: BIO },
   { name: "Access", image: CS },
