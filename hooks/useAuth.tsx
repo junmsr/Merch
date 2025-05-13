@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
-import { auth } from '../app/firebase.config';
+import { doc, setDoc, getDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../app/firebase.config';
 
 interface AuthContextData {
   user: User | null;
@@ -40,7 +41,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signUp = async (email: string, password: string) => {
     try {
       setError(null);
-      await createUserWithEmailAndPassword(auth, email, password);
+      // Create the user in Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      // Create a new user document in Firestore
+      const userRef = doc(db, 'users', user.uid);
+      
+      // Check if the document already exists
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        // Create new user document
+        const userData = {
+          email: user.email,
+          uid: user.uid,
+          createdAt: serverTimestamp(),
+          isAdmin: false,
+          displayName: email.split('@')[0],
+          lastLogin: serverTimestamp(),
+        };
+
+        try {
+          await setDoc(userRef, userData);
+        } catch (firestoreError: any) {
+          console.error('Error creating user document:', firestoreError);
+          // If Firestore fails, we should probably delete the auth user
+          await user.delete();
+          throw new Error('Failed to create user profile. Please try again.');
+        }
+      }
     } catch (err: any) {
       setError(err.message);
       throw err;

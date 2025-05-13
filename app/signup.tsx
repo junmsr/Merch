@@ -55,7 +55,17 @@ const SignupScreen = () => {
 
     try {
       await signUp(email, password);
-      router.replace('/');
+      Alert.alert(
+        'Success!',
+        'Your account has been created successfully.',
+        [
+          {
+            text: 'OK',
+            onPress: () => router.replace('/')
+          }
+        ],
+        { cancelable: false }
+      );
     } catch (err: any) {
       Alert.alert('Error', err.message);
     }
