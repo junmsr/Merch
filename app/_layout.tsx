@@ -8,7 +8,6 @@ import 'react-native-reanimated';
 import { AuthProvider } from '../hooks/useAuth';
 import { useAuth } from '../hooks/useAuth';
 import { router } from 'expo-router';
-
 import { useColorScheme } from '@/hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -24,14 +23,24 @@ function RootLayoutNav() {
   }, [user, loading]);
 
   if (loading) {
-    return null; // Or a loading screen
+    return null;
   }
 
   return (
-    <Stack>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-      <Stack.Screen name="login" options={{ headerShown: false }} />
-      <Stack.Screen name="signup" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="login" />
+      <Stack.Screen name="signup" />
+      <Stack.Screen name="dashboard" />
+      <Stack.Screen name="cart" />
+      <Stack.Screen name="profile" />
+      <Stack.Screen name="circuits" />
+      <Stack.Screen name="chess" />
+      <Stack.Screen name="csc" />
+      <Stack.Screen name="symbioses" />
+      <Stack.Screen name="access" />
+      <Stack.Screen name="storm" />
+      <Stack.Screen name="+not-found" />
     </Stack>
   );
 }
@@ -56,18 +65,6 @@ export default function RootLayout() {
     <AuthProvider>
       <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
         <RootLayoutNav />
-        <Stack>
-          <Stack.Screen name="dashboard" options={{ headerShown: false }} />
-          <Stack.Screen name="cart" options={{ headerShown: false }} />
-          <Stack.Screen name="profile" options={{ headerShown: false }} />
-          <Stack.Screen name="circuits" options={{ headerShown: false }} />
-          <Stack.Screen name="chess" options={{ headerShown: false }} />
-          <Stack.Screen name="csc" options={{ headerShown: false }} />
-          <Stack.Screen name="symbioses" options={{ headerShown: false }} />
-          <Stack.Screen name="access" options={{ headerShown: false }} />
-          <Stack.Screen name="storm" options={{ headerShown: false }} />
-          <Stack.Screen name="+not-found" />
-        </Stack>
         <StatusBar style="auto" />
       </ThemeProvider>
     </AuthProvider>
