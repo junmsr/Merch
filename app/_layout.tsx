@@ -42,6 +42,7 @@ export default function RootLayout() {
         <Stack.Screen name="symbioses" options={{ headerShown: false }} />
         <Stack.Screen name="access" options={{ headerShown: false }} />
         <Stack.Screen name="storm" options={{ headerShown: false }} />
+        <Stack.Screen name="AdminDashboard" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
