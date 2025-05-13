@@ -6,6 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
+import { getDoc, doc } from 'firebase/firestore';
+import { db, auth } from './firebase.config';
 
 // @ts-ignore
 import logoImage from '../assets/images/Vintage.png';
@@ -48,7 +50,17 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     try {
       await signIn(email, password);
-      router.replace('/dashboard');
+      // Wait for auth state to update
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        throw new Error('User not found');
+      }
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists() && userDoc.data().isAdmin) {
+        router.replace('/admin');
+      } else {
+        router.replace('/dashboard');
+      }
     } catch (err: any) {
       Alert.alert('Error', err.message);
     }
