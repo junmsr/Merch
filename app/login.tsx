@@ -7,7 +7,7 @@ import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
 import { getDoc, doc } from 'firebase/firestore';
-import { db, auth } from './firebase.config';
+import { db, auth } from '../services/firebase.config';
 
 // @ts-ignore
 import logoImage from '../assets/images/Vintage.png';

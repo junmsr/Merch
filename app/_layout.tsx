@@ -8,7 +8,7 @@ import 'react-native-reanimated';
 import { AuthProvider } from '../hooks/useAuth';
 import { useAuth } from '../hooks/useAuth';
 import { router } from 'expo-router';
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { useColorScheme } from '../hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
@@ -28,19 +28,19 @@ function RootLayoutNav() {
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="login" />
-      <Stack.Screen name="signup" />
-      <Stack.Screen name="dashboard" />
-      <Stack.Screen name="cart" />
-      <Stack.Screen name="profile" />
-      <Stack.Screen name="circuits" />
-      <Stack.Screen name="chess" />
-      <Stack.Screen name="csc" />
-      <Stack.Screen name="symbioses" />
-      <Stack.Screen name="access" />
-      <Stack.Screen name="storm" />
-      <Stack.Screen name="+not-found" />
+      <Stack.Screen name="(tabs)"/>
+      <Stack.Screen name="login"/>
+      <Stack.Screen name="signup"/>
+      <Stack.Screen name="dashboard"/>
+      <Stack.Screen name="cart"/>
+      <Stack.Screen name="profile"/>
+      <Stack.Screen name="circuits"/>
+      <Stack.Screen name="chess"/>
+      <Stack.Screen name="csc"/>
+      <Stack.Screen name="symbioses"/>
+      <Stack.Screen name="access"/>
+      <Stack.Screen name="storm"/>
+      <Stack.Screen name="+not-found"/>
     </Stack>
   );
 }
@@ -65,7 +65,7 @@ export default function RootLayout() {
     <AuthProvider>
       <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
         <RootLayoutNav />
-        <StatusBar style="auto" />
+        <StatusBar style="auto"/>
       </ThemeProvider>
     </AuthProvider>
   );

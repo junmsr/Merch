@@ -1,5 +1,5 @@
 import { initializeApp } from 'firebase/app';
-import auth from '@react-native-firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
 import { getFirestore } from 'firebase/firestore';
 
@@ -17,6 +17,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
 
 // Initialize Analytics (only in web environment)
 let analytics = null;

@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
 import { doc, setDoc, getDoc, collection, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../app/firebase.config';
+import { auth, db } from '../services/firebase.config';
 
 interface AuthContextData {
   user: User | null;

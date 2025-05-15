@@ -18,7 +18,7 @@ import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 import { useAuth } from '../hooks/useAuth';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from './firebase.config';
+import { db } from '../services/firebase.config';
 
 interface Product {
   id: number;
