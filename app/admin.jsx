@@ -10,11 +10,9 @@ import {
   Alert,
   SafeAreaView,
   Image,
-  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useRouter } from 'expo-router';
 import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
@@ -43,20 +41,22 @@ const AdminDashboard = () => {
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [selectedCollegeId, setSelectedCollegeId] = useState(adminAssignedCollege || 'circuits');
   const [viewingCategoryId, setViewingCategoryId] = useState('shirts');
-  const [isLoading, setIsLoading] = useState(false);
 
   const [collegeOptions, setCollegeOptions] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
-
+  const [isLoading, setIsLoading] = useState(false);
 
   useLayoutEffect(() => {
     const loadOptions = async () => {
       setIsLoading(true);
       try {
+        console.log('Loading options with adminAssignedCollege:', adminAssignedCollege);
         if (adminAssignedCollege) {
+          console.log('Setting college options for admin assigned college');
           setCollegeOptions([adminAssignedCollege]);
           setSelectedCollegeId(adminAssignedCollege);
           const categories = await fetchCategoriesForCollege(adminAssignedCollege);
+          console.log('Fetched categories for admin college:', categories);
           setCategoryOptions(categories);
           if (categories.length > 0 && !categories.includes(viewingCategoryId)) {
             setViewingCategoryId(categories[0]);
@@ -64,15 +64,19 @@ const AdminDashboard = () => {
             setViewingCategoryId('');
           }
         } else {
+          console.log('Fetching all colleges');
           const colleges = await fetchAllColleges();
+          console.log('Fetched colleges:', colleges);
           setCollegeOptions(colleges);
           if (!selectedCollegeId && colleges.length > 0) {
              setSelectedCollegeId(colleges[0]);
              const categories = await fetchCategoriesForCollege(colleges[0]);
+             console.log('Fetched categories for first college:', categories);
              setCategoryOptions(categories);
              if (categories.length > 0) setViewingCategoryId(categories[0]); else setViewingCategoryId('');
           } else if (selectedCollegeId) {
             const categories = await fetchCategoriesForCollege(selectedCollegeId);
+            console.log('Fetched categories for selected college:', categories);
             setCategoryOptions(categories);
             if (categories.length > 0 && !categories.includes(viewingCategoryId)) {
                  setViewingCategoryId(categories[0]);
@@ -82,6 +86,7 @@ const AdminDashboard = () => {
           }
         }
       } catch (error) {
+        console.error('Error loading options:', error);
         Alert.alert('Error', 'Failed to load college/category options. ' + error.message);
       } finally {
         setIsLoading(false);
@@ -300,6 +305,19 @@ const AdminDashboard = () => {
 
   const salesData = generateSalesData();
 
+  // Add console log for picker changes
+  const handleCollegeChange = (itemValue) => {
+    console.log('College picker changed to:', itemValue);
+    if (!adminAssignedCollege) {
+      setSelectedCollegeId(itemValue);
+    }
+  };
+
+  const handleCategoryChange = (itemValue) => {
+    console.log('Category picker changed to:', itemValue);
+    setViewingCategoryId(itemValue);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -315,11 +333,7 @@ const AdminDashboard = () => {
               <Text style={styles.pickerLabel}>College Context:</Text>
               <Picker
               selectedValue={selectedCollegeId}
-              onValueChange={(itemValue) => {
-                  if (!adminAssignedCollege) {
-                      setSelectedCollegeId(itemValue);
-                  }
-              }}
+              onValueChange={handleCollegeChange}
               style={styles.picker}
               enabled={!adminAssignedCollege && collegeOptions.length > 0}
               >
@@ -332,7 +346,7 @@ const AdminDashboard = () => {
               <Text style={styles.pickerLabel}>Viewing Category:</Text>
               <Picker
               selectedValue={viewingCategoryId}
-              onValueChange={(itemValue) => setViewingCategoryId(itemValue)}
+              onValueChange={handleCategoryChange}
               style={styles.picker}
               enabled={categoryOptions.length > 0}
               >
@@ -668,8 +682,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   dashboardCards: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     marginBottom: 20,
   },

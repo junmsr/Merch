@@ -73,11 +73,13 @@ const LoginScreen = () => {
   }, [loading]);
 
   const handleLogin = async () => {
+    setLoading(true);
     if (!email || !password) {
         Alert.alert('Error', 'Email and Password are required.');
         return;
     }
     try {
+      
       const userCredential = await signIn(email, password); // Assuming signIn from useAuth returns UserCredential
 
       if (!userCredential || !userCredential.user) {
@@ -129,7 +131,11 @@ const LoginScreen = () => {
         errorMessage = err;
       }
       Alert.alert('Login Error', errorMessage);
+      
+    } finally{
+      setLoading(false);
     }
+    
   };
 
   if (loading) {
