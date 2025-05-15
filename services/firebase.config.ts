@@ -1,8 +1,15 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
-import { getAnalytics } from 'firebase/analytics';
 import { getFirestore } from 'firebase/firestore';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 
+if (typeof window !== 'undefined') {
+  isSupported().then((supported) => {
+    if (supported) {
+      getAnalytics(app);
+    }
+  });
+}
 // Your web app's Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyB7Y3El0AMqeqJIkdpJ8H-y5GcnXpLPA1Q",

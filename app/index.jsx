@@ -3,16 +3,11 @@ import { View, Text, StyleSheet, Image, Animated, Dimensions, TouchableOpacity }
 import Svg, { Path } from 'react-native-svg';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-// @ts-ignore
 import logoImage from '../assets/images/Vintage.png';
 
 const { width } = Dimensions.get('window');
 
-interface SplashScreenProps {
-  onFinish: () => void;
-}
-
-const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
+const SplashScreen = ({ onFinish }) => {
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const logoScale = useRef(new Animated.Value(0.8)).current;
 
@@ -43,7 +38,7 @@ const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   );
 };
 
-const WelcomeScreen: React.FC = () => {
+const WelcomeScreen = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -137,7 +132,7 @@ const WelcomeScreen: React.FC = () => {
         <Animated.View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.createAccountButton, { backgroundColor: '#4776E6' }]}
-            onPress={() => router.push('/signup')}
+            onPress={() => router.push('./signup')}
           >
             <Text style={[styles.buttonText, { color: '#fff' }]}>Create Account</Text>
           </TouchableOpacity>
@@ -145,7 +140,7 @@ const WelcomeScreen: React.FC = () => {
           {/* Divider */}
           <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
+          <TouchableOpacity style={styles.loginButton} onPress={() => router.push('./login')}>
             <Text style={styles.loginButtonText}>Login</Text>
           </TouchableOpacity>
         </Animated.View>

@@ -6,21 +6,21 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
+import { getDoc, doc } from 'firebase/firestore';
+import { db, auth } from '../services/firebase.config';
 
 // @ts-ignore
 import logoImage from '../assets/images/Vintage.png';
 
 const { width } = Dimensions.get('window');
 
-const SignupScreen = () => {
+const LoginScreen = () => {
   const router = useRouter();
   const navigation = useNavigation();
-  const { signUp, error } = useAuth();
+  const { signIn, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
-  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -47,26 +47,21 @@ const SignupScreen = () => {
     ]).start();
   }, []);
 
-  const handleSignup = async () => {
-    if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
-      return;
-    }
-
+  const handleLogin = async () => {
     try {
-      await signUp(email, password);
-      Alert.alert(
-        'Success!',
-        'Your account has been created successfully.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/')
-          }
-        ],
-        { cancelable: false }
-      );
-    } catch (err: any) {
+      await signIn(email, password);
+      // Wait for auth state to update
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        throw new Error('User not found');
+      }
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists() && userDoc.data().isAdmin) {
+        router.replace('/admin');
+      } else {
+        router.replace('/dashboard');
+      }
+    } catch (err) {
       Alert.alert('Error', err.message);
     }
   };
@@ -87,7 +82,7 @@ const SignupScreen = () => {
           <Animated.Image source={logoImage} style={[styles.logo, { opacity: logoOpacity }]} />
 
           <Animated.View style={[styles.inputCard, { transform: [{ translateY: inputCardTranslateY }] }]}>
-            <Text style={styles.title}>Create Account</Text>
+            <Text style={styles.title}>Login</Text>
 
             <View style={styles.inputWrapper}>
               <Ionicons name="mail" size={20} color="#888" style={styles.inputIcon} />
@@ -117,38 +112,23 @@ const SignupScreen = () => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.inputWrapper}>
-              <Ionicons name="lock-closed" size={20} color="#888" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Confirm Password"
-                placeholderTextColor="#aaa"
-                secureTextEntry={!confirmPasswordVisible}
-                value={confirmPassword}
-                onChangeText={setConfirmPassword}
-              />
-              <TouchableOpacity style={styles.eyeIcon} onPress={() => setConfirmPasswordVisible(!confirmPasswordVisible)}>
-                <Ionicons name={confirmPasswordVisible ? 'eye-off' : 'eye'} size={20} color="#888" />
-              </TouchableOpacity>
-            </View>
-
             <TouchableOpacity
-              style={styles.signupButton}
-              onPress={handleSignup}
+              style={styles.loginButton}
+              onPress={handleLogin}
               activeOpacity={0.7}
               onPressIn={() => Animated.spring(buttonScale, { toValue: 0.9, useNativeDriver: true }).start()}
               onPressOut={() => Animated.spring(buttonScale, { toValue: 1, useNativeDriver: true }).start()}
             >
-              <Animated.Text style={[styles.signupButtonText, { transform: [{ scale: buttonScale }] }]}>
-                SIGN UP
+              <Animated.Text style={[styles.loginButtonText, { transform: [{ scale: buttonScale }] }]}>
+                LOGIN
               </Animated.Text>
             </TouchableOpacity>
           </Animated.View>
 
-          <Text style={styles.loginText}>
-            Already have an account?{' '}
-            <Text style={styles.loginLink} onPress={() => router.push('/login')}>
-              Login
+          <Text style={styles.signUpText}>
+            New to CS Merch?{' '}
+            <Text style={styles.signUpLink} onPress={() => router.push('/signup')}>
+              Sign up
             </Text>
           </Text>
         </View>
@@ -243,7 +223,7 @@ const styles = StyleSheet.create({
   eyeIcon: {
     padding: 10,
   },
-  signupButton: {
+  loginButton: {
     width: '100%',
     backgroundColor: '#4776E6',
     borderRadius: 10,
@@ -256,21 +236,49 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 5,
   },
-  signupButtonText: {
+  loginButtonText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#fff',
   },
-  loginText: {
+  divider: {
+    marginVertical: 20,
+    alignItems: 'center',
+  },
+  dividerText: {
+    fontSize: 16,
+    color: '#666',
+  },
+  socialLoginContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: -10,
+  },
+  socialIconWrapper: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginHorizontal: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  signUpText: {
     fontSize: 16,
     color: '#666',
     textAlign: 'center',
     marginTop: 20,
   },
-  loginLink: {
+  signUpLink: {
     color: '#4776E6',
     fontWeight: 'bold',
   },
 });
 
-export default SignupScreen; 
+export default LoginScreen; 

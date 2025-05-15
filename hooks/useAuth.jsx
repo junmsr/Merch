@@ -1,23 +1,16 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { User, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
-import { doc, setDoc, getDoc, collection, serverTimestamp } from 'firebase/firestore';
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
+import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase.config';
 
-interface AuthContextData {
-  user: User | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
-  error: string | null;
-}
+// Remove the interface and types
 
-const AuthContext = createContext<AuthContextData>({} as AuthContextData);
+const AuthContext = createContext({});
 
-export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -28,17 +21,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email, password) => {
     try {
       setError(null);
       await signInWithEmailAndPassword(auth, email, password);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
       throw err;
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const signUp = async (email, password) => {
     try {
       setError(null);
       // Create the user in Firebase Auth
@@ -47,10 +40,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       // Create a new user document in Firestore
       const userRef = doc(db, 'users', user.uid);
-      
+
       // Check if the document already exists
       const userDoc = await getDoc(userRef);
-      
+
       if (!userDoc.exists()) {
         // Create new user document
         const userData = {
@@ -64,14 +57,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         try {
           await setDoc(userRef, userData);
-        } catch (firestoreError: any) {
+        } catch (firestoreError) {
           console.error('Error creating user document:', firestoreError);
           // If Firestore fails, we should probably delete the auth user
           await user.delete();
           throw new Error('Failed to create user profile. Please try again.');
         }
       }
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
       throw err;
     }
@@ -81,7 +74,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setError(null);
       await firebaseSignOut(auth);
-    } catch (err: any) {
+    } catch (err) {
       setError(err.message);
       throw err;
     }
@@ -100,4 +93,4 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};
