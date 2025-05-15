@@ -48,21 +48,62 @@ const LoginScreen = () => {
   }, []);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+        Alert.alert('Error', 'Email and Password are required.');
+        return;
+    }
     try {
-      await signIn(email, password);
-      // Wait for auth state to update
-      const uid = auth.currentUser?.uid;
+      const userCredential = await signIn(email, password); // Assuming signIn from useAuth returns UserCredential
+
+      if (!userCredential || !userCredential.user) {
+        Alert.alert('Login Failed', 'Could not log in. Please try again.');
+        return;
+      }
+      const loggedInUser = userCredential.user;
+      const uid = loggedInUser.uid;
+
       if (!uid) {
-        throw new Error('User not found');
+        // This case should ideally not be reached if userCredential.user exists
+        Alert.alert('Login Error', 'User ID not found after login.');
+        return;
       }
-      const userDoc = await getDoc(doc(db, 'users', uid));
-      if (userDoc.exists() && userDoc.data().isAdmin) {
-        router.replace('/admin');
+
+      // Fetch user profile from Firestore
+      const userDocRef = doc(db, 'users', uid);
+      const userDocSnap = await getDoc(userDocRef);
+
+      if (userDocSnap.exists()) {
+        const userData = userDocSnap.data();
+        if (userData.role === 'admin' && userData.college) {
+          // Navigate to AdminDashboard, passing the college as a param
+          Alert.alert('Admin Login', `Welcome Admin for ${userData.college}!`); // For testing
+          router.replace({ pathname: '/admin', params: { college: userData.college, adminUid: uid } });
+        } else if (userData.role === 'customer') {
+          // Navigate to customer dashboard or home screen
+          router.replace('/dashboard'); 
+        } else {
+          // Role is undefined or not recognized, default to customer view or show error
+          Alert.alert('Login Warning', 'User role not recognized. Defaulting to customer view.');
+          router.replace('/dashboard');
+        }
       } else {
-        router.replace('/dashboard');
+        // User document doesn't exist in Firestore, though auth was successful.
+        // This could be an old user or an error in signup.
+        Alert.alert('Login Error', 'User profile not found. Please contact support or try signing up again.');
+        // Optionally, could log them out here or redirect to signup
+        // await auth.signOut(); // If you want to sign them out
+        // router.replace('/signup');
       }
+
     } catch (err) {
-      Alert.alert('Error', err.message);
+      // Handle errors from signIn or getDoc
+      let errorMessage = 'An unknown error occurred during login.';
+      if (err.message) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      Alert.alert('Login Error', errorMessage);
     }
   };
 

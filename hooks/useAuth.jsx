@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
-import { doc, setDoc, getDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '../services/firebase.config';
 
 // Remove the interface and types
@@ -22,9 +21,10 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const signIn = async (email, password) => {
+    setError(null);
     try {
-      setError(null);
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      return userCredential;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -32,38 +32,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signUp = async (email, password) => {
+    setError(null);
     try {
-      setError(null);
-      // Create the user in Firebase Auth
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
-
-      // Create a new user document in Firestore
-      const userRef = doc(db, 'users', user.uid);
-
-      // Check if the document already exists
-      const userDoc = await getDoc(userRef);
-
-      if (!userDoc.exists()) {
-        // Create new user document
-        const userData = {
-          email: user.email,
-          uid: user.uid,
-          createdAt: serverTimestamp(),
-          isAdmin: false,
-          displayName: email.split('@')[0],
-          lastLogin: serverTimestamp(),
-        };
-
-        try {
-          await setDoc(userRef, userData);
-        } catch (firestoreError) {
-          console.error('Error creating user document:', firestoreError);
-          // If Firestore fails, we should probably delete the auth user
-          await user.delete();
-          throw new Error('Failed to create user profile. Please try again.');
-        }
-      }
+      return userCredential;
     } catch (err) {
       setError(err.message);
       throw err;
@@ -71,8 +43,8 @@ export const AuthProvider = ({ children }) => {
   };
 
   const signOut = async () => {
+    setError(null);
     try {
-      setError(null);
       await firebaseSignOut(auth);
     } catch (err) {
       setError(err.message);
@@ -81,7 +53,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, error }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut, error, setError }}>
       {children}
     </AuthContext.Provider>
   );

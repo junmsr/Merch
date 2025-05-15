@@ -6,6 +6,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../hooks/useAuth';
+import { db } from '../services/firebase.config';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 
 // @ts-ignore
 import logoImage from '../assets/images/Vintage.png';
@@ -52,22 +54,52 @@ const SignupScreen = () => {
       Alert.alert('Error', 'Passwords do not match');
       return;
     }
+    if (!email || !password) {
+        Alert.alert('Error', 'Email and Password are required.');
+        return;
+    }
 
     try {
-      await signUp(email, password);
+      const userCredential = await signUp(email, password);
+      
+      if (!userCredential || !userCredential.user) {
+        Alert.alert('Error', 'Sign up failed. No user created.');
+        return;
+      }
+      const user = userCredential.user;
+
+      // User is customer by default
+      const userData = {
+        uid: user.uid,
+        email: user.email,
+        role: 'customer', // Default role
+        createdAt: serverTimestamp(),
+      };
+
+      await setDoc(doc(db, 'users', user.uid), userData);
+
       Alert.alert(
         'Success!',
-        'Your account has been created successfully.',
+        'Your account has been created successfully. Please log in.',
         [
           {
             text: 'OK',
-            onPress: () => router.replace('/')
+            onPress: () => router.replace('/login') // Navigate to login screen
           }
         ],
         { cancelable: false }
       );
     } catch (err) {
-      Alert.alert('Error', err.message);
+      // Handle errors from both signUp and setDoc
+      let errorMessage = 'An unknown error occurred.';
+      if (err.message) {
+        errorMessage = err.message;
+      } else if (typeof err === 'string') {
+        errorMessage = err;
+      }
+      // Check for specific Firebase Auth error codes if needed (e.g., 'auth/email-already-in-use')
+      // console.error("Signup Error Full:", err); // For debugging
+      Alert.alert('Sign Up Error', errorMessage);
     }
   };
 
