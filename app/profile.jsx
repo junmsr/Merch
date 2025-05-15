@@ -5,8 +5,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 
-import ProfileImage from '../assets/images/Junmar.png';
-import SampleProductImage from '../assets/images/Junmar.png'; // Replace with your sample product image path
+import ProfileImage from '../assets/images/profile.png';
+import SampleProductImage from '../assets/images/profile.png'; // Replace with your sample product image path
 
 const ProfileScreen = () => {
   const router = useRouter();
@@ -271,8 +271,8 @@ const ProfileScreen = () => {
           <View style={styles.profileCardSolid}>
             <Image source={ProfileImage} style={styles.profileImage} />
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>Junmar Perez</Text>
-              <Text style={styles.profileEmail}>junmarperez@gmail.com</Text>
+              <Text style={styles.profileName}>profile Perez</Text>
+              <Text style={styles.profileEmail}>profileperez@gmail.com</Text>
             </View>
           </View>
         </Animated.View>

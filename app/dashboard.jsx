@@ -13,7 +13,7 @@ import LOGO from '../assets/images/logo.png';
 import BIO from '../assets/images/BIO.png';
 import CS from '../assets/images/CS.png';
 import STORM from '../assets/images/STORM.png';
-import Junmar from '../assets/images/Junmar.png'; // Import the Junmar.png image
+import Junmar from '../assets/images/profile.png'; // Import the Junmar.png image
 
 const { width } = Dimensions.get('window');
 
