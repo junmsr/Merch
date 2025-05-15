@@ -132,7 +132,7 @@ const WelcomeScreen = () => {
         <Animated.View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.createAccountButton, { backgroundColor: '#4776E6' }]}
-            onPress={() => router.push('/signup')}
+            onPress={() => router.push('./signup')}
           >
             <Text style={[styles.buttonText, { color: '#fff' }]}>Create Account</Text>
           </TouchableOpacity>
@@ -140,7 +140,7 @@ const WelcomeScreen = () => {
           {/* Divider */}
           <View style={styles.divider} />
 
-          <TouchableOpacity style={styles.loginButton} onPress={() => router.push('/login')}>
+          <TouchableOpacity style={styles.loginButton} onPress={() => router.push('./login')}>
             <Text style={styles.loginButtonText}>Login</Text>
           </TouchableOpacity>
         </Animated.View>
@@ -178,7 +178,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'space-between', // Ensures space between content and footer
+    justifyContent: 'space-between',
     width: '100%',
   },
   wave: {
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   divider: {
     width: '85%',
     height: 1,
-    padding:1,
+    padding: 1,
     borderRadius: 10,
     backgroundColor: 'gray',
     marginVertical: 10,
@@ -259,20 +259,19 @@ const styles = StyleSheet.create({
   },
   verticalDivider: {
     width: 1,
-    height:130,
+    height: 130,
     backgroundColor: 'white',
     marginHorizontal: 10,
     marginTop: 290,
-    padding:2,
+    padding: 2,
     borderRadius: 10,
   },
   titleText: {
-    fontSize: 50, // Increased font size for better visibility
+    fontSize: 50,
     fontWeight: 'bold',
-    fontFamily: 'sans-serif', // Set a specific font family (use a custom font if needed)
+    fontFamily: 'sans-serif',
     color: 'white',
     marginTop: 290,
-    
   },
   footer: {
     alignItems: 'center',
@@ -298,4 +297,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default WelcomeScreen;
+export default WelcomeScreen; 

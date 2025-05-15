@@ -5,11 +5,45 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
-
-import { useColorScheme } from '@/hooks/useColorScheme';
+import { AuthProvider } from '../hooks/useAuth';
+import { useAuth } from '../hooks/useAuth';
+import { router } from 'expo-router';
+import { useColorScheme } from '../hooks/useColorScheme';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
+
+function RootLayoutNav() {
+  const { user, loading } = useAuth();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      router.replace('./index');
+    }
+  }, [user, loading]);
+
+  if (loading) {
+    return null;
+  }
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)"/>
+      <Stack.Screen name="login"/>
+      <Stack.Screen name="signup"/>
+      <Stack.Screen name="dashboard"/>
+      <Stack.Screen name="cart"/>
+      <Stack.Screen name="profile"/>
+      <Stack.Screen name="circuits"/>
+      <Stack.Screen name="chess"/>
+      <Stack.Screen name="csc"/>
+      <Stack.Screen name="symbioses"/>
+      <Stack.Screen name="access"/>
+      <Stack.Screen name="storm"/>
+      <Stack.Screen name="+not-found"/>
+    </Stack>
+  );
+}
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -39,10 +73,10 @@ export default function RootLayout() {
         <Stack.Screen name="circuits" options={{ headerShown: false }} />
         <Stack.Screen name="chess" options={{ headerShown: false }} />
         <Stack.Screen name="csc" options={{ headerShown: false }} />
-        <Stack.Screen name="symbioses" options={{ headerShown: false }} />
+        <Stack.Screen name="symbiosis" options={{ headerShown: false }} />
         <Stack.Screen name="access" options={{ headerShown: false }} />
         <Stack.Screen name="storm" options={{ headerShown: false }} />
-        <Stack.Screen name="AdminDashboard" options={{ headerShown: false }} />
+        <Stack.Screen name="admin" options={{ headerShown: false }} />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />

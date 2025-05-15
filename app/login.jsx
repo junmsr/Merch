@@ -1,11 +1,15 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, ScrollView, Animated, Easing } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, ScrollView, Animated, Easing, Alert } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../hooks/useAuth';
+import { getDoc, doc } from 'firebase/firestore';
+import { db, auth } from '../services/firebase.config';
 
+// @ts-ignore
 import logoImage from '../assets/images/Vintage.png';
 
 const { width } = Dimensions.get('window');
@@ -13,6 +17,7 @@ const { width } = Dimensions.get('window');
 const LoginScreen = () => {
   const router = useRouter();
   const navigation = useNavigation();
+  const { signIn, error } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -42,8 +47,23 @@ const LoginScreen = () => {
     ]).start();
   }, []);
 
-  const handleLogin = () => {
-    router.push('/dashboard');
+  const handleLogin = async () => {
+    try {
+      await signIn(email, password);
+      // Wait for auth state to update
+      const uid = auth.currentUser?.uid;
+      if (!uid) {
+        throw new Error('User not found');
+      }
+      const userDoc = await getDoc(doc(db, 'users', uid));
+      if (userDoc.exists() && userDoc.data().isAdmin) {
+        router.replace('/admin');
+      } else {
+        router.replace('/dashboard');
+      }
+    } catch (err) {
+      Alert.alert('Error', err.message);
+    }
   };
 
   return (
@@ -72,6 +92,8 @@ const LoginScreen = () => {
                 placeholderTextColor="#aaa"
                 value={email}
                 onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
               />
             </View>
 
@@ -101,18 +123,6 @@ const LoginScreen = () => {
                 LOGIN
               </Animated.Text>
             </TouchableOpacity>
-            <View style={styles.divider}>
-            <Text style={styles.dividerText}>OR</Text>
-          </View>
-
-          <View style={styles.socialLoginContainer}>
-            <TouchableOpacity style={[styles.socialIconWrapper, { backgroundColor: '#3b5998' }]}>
-              <Ionicons name="logo-facebook" size={24} color="#fff" />
-            </TouchableOpacity>
-            <TouchableOpacity style={[styles.socialIconWrapper, { backgroundColor: '#db4437' }]}>
-              <Ionicons name="logo-google" size={24} color="#fff" />
-            </TouchableOpacity>
-          </View>
           </Animated.View>
 
           <Text style={styles.signUpText}>
@@ -207,6 +217,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
   },
+  inputIcon: {
+    marginRight: 10,
+  },
+  eyeIcon: {
+    padding: 10,
+  },
   loginButton: {
     width: '100%',
     backgroundColor: '#4776E6',
@@ -265,4 +281,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default LoginScreen;
+export default LoginScreen; 
