@@ -62,11 +62,24 @@ export default function RootLayout() {
   }
 
   return (
-    <AuthProvider>
-      <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
-        <RootLayoutNav />
-        <StatusBar style="auto"/>
-      </ThemeProvider>
-    </AuthProvider>
+    <ThemeProvider value={colorScheme === 'light' ? DarkTheme : DefaultTheme}>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen name="signup" options={{ headerShown: false }} />
+        <Stack.Screen name="login" options={{ headerShown: false }} />
+        <Stack.Screen name="dashboard" options={{ headerShown: false }} />
+        <Stack.Screen name="cart" options={{ headerShown: false }} />
+        <Stack.Screen name="profile" options={{ headerShown: false }} />
+        <Stack.Screen name="circuits" options={{ headerShown: false }} />
+        <Stack.Screen name="chess" options={{ headerShown: false }} />
+        <Stack.Screen name="csc" options={{ headerShown: false }} />
+        <Stack.Screen name="symbioses" options={{ headerShown: false }} />
+        <Stack.Screen name="access" options={{ headerShown: false }} />
+        <Stack.Screen name="storm" options={{ headerShown: false }} />
+        <Stack.Screen name="AdminDashboard" options={{ headerShown: false }} />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+      <StatusBar style="auto" />
+    </ThemeProvider>
   );
 }
