@@ -48,6 +48,7 @@ const AdminDashboard = () => {
   const [collegeOptions, setCollegeOptions] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
 
+
   useLayoutEffect(() => {
     const loadOptions = async () => {
       setIsLoading(true);
@@ -279,7 +280,7 @@ const AdminDashboard = () => {
   const screenWidth = Dimensions.get('window').width;
 
   const generateSalesData = () => {
-    const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun','July','Aug','Sept','Oct','Nov','Dec'];
     const sales = labels.map(() => {
       return products.reduce(
         (acc, product) => acc + product.price * (10 - product.stock),
@@ -301,82 +302,87 @@ const AdminDashboard = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Admin Dashboard</Text>
-        <TouchableOpacity onPress={handleLogout}>
-          <Ionicons name="log-out-outline" size={24} color="white" />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.pickerContainer}>
-        <View style={styles.pickerWrapper}>
-            <Text style={styles.pickerLabel}>College Context:</Text>
-            <Picker
-            selectedValue={selectedCollegeId}
-            onValueChange={(itemValue) => {
-                if (!adminAssignedCollege) {
-                    setSelectedCollegeId(itemValue);
-                }
-            }}
-            style={styles.picker}
-            enabled={!adminAssignedCollege && collegeOptions.length > 0}
-            >
-            {collegeOptions.map(college => (
-                <Picker.Item key={college} label={college.charAt(0).toUpperCase() + college.slice(1)} value={college} />
-            ))}
-            </Picker>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Admin Dashboard</Text>
+          <TouchableOpacity onPress={handleLogout}>
+            <Ionicons name="log-out-outline" size={24} color="white" />
+          </TouchableOpacity>
         </View>
-        <View style={styles.pickerWrapper}>
-            <Text style={styles.pickerLabel}>Viewing Category:</Text>
-            <Picker
-            selectedValue={viewingCategoryId}
-            onValueChange={(itemValue) => setViewingCategoryId(itemValue)}
-            style={styles.picker}
-            enabled={categoryOptions.length > 0}
-            >
-            {categoryOptions.map(category => (
-                <Picker.Item key={category} label={category.charAt(0).toUpperCase() + category.slice(1)} value={category} />
-            ))}
-            </Picker>
-        </View>
-      </View>
 
-      <View style={styles.profileSection}>
-        <Image
-          source={require('../assets/images/IT.png')}
-          style={styles.profileBackground}
-        />
-        <View style={styles.profileContent}>
+        <View style={styles.pickerContainer}>
+          <View style={styles.pickerWrapper}>
+              <Text style={styles.pickerLabel}>College Context:</Text>
+              <Picker
+              selectedValue={selectedCollegeId}
+              onValueChange={(itemValue) => {
+                  if (!adminAssignedCollege) {
+                      setSelectedCollegeId(itemValue);
+                  }
+              }}
+              style={styles.picker}
+              enabled={!adminAssignedCollege && collegeOptions.length > 0}
+              >
+              {collegeOptions.map(college => (
+                  <Picker.Item key={college} label={college.charAt(0).toUpperCase() + college.slice(1)} value={college} />
+              ))}
+              </Picker>
+          </View>
+          <View style={styles.pickerWrapper}>
+              <Text style={styles.pickerLabel}>Viewing Category:</Text>
+              <Picker
+              selectedValue={viewingCategoryId}
+              onValueChange={(itemValue) => setViewingCategoryId(itemValue)}
+              style={styles.picker}
+              enabled={categoryOptions.length > 0}
+              >
+              {categoryOptions.map(category => (
+                  <Picker.Item key={category} label={category.charAt(0).toUpperCase() + category.slice(1)} value={category} />
+              ))}
+              </Picker>
+          </View>
+        </View>
+
+        <View style={styles.profileSection}>
           <Image
             source={require('../assets/images/IT.png')}
-            style={styles.avatar}
+            style={styles.profileBackground}
           />
-          <View>
-            <Text style={styles.profileTitle}>{selectedCollegeId ? selectedCollegeId.charAt(0).toUpperCase() + selectedCollegeId.slice(1) : 'Admin'} Dashboard</Text>
-            <Text style={styles.profileSubtitle}>
-              Managing products for {selectedCollegeId ? selectedCollegeId.charAt(0).toUpperCase() + selectedCollegeId.slice(1) : 'selected college'}
-            </Text>
+          <View style={styles.profileContent}>
+            <Image
+              source={require('../assets/images/IT.png')}
+              style={styles.avatar}
+            />
+            <View>
+              <Text style={styles.profileTitle}>{selectedCollegeId ? selectedCollegeId.charAt(0).toUpperCase() + selectedCollegeId.slice(1) : 'Admin'} Dashboard</Text>
+              <Text style={styles.profileSubtitle}>
+                Managing products for {selectedCollegeId ? selectedCollegeId.charAt(0).toUpperCase() + selectedCollegeId.slice(1) : 'selected college'}
+              </Text>
+            </View>
           </View>
         </View>
-      </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      
         <View style={styles.dashboardCards}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Total Products</Text>
-            <Text style={styles.cardValue}>{products.length}</Text>
+          <View style={styles.cardRow}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Total Products</Text>
+              <Text style={styles.cardValue}>{products.length}</Text>
+            </View>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Total Revenue</Text>
+              <Text style={styles.cardValue}>₱{totalRevenue.toFixed(2)}</Text>
+            </View>
           </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Total Revenue</Text>
-            <Text style={styles.cardValue}>₱{totalRevenue.toFixed(2)}</Text>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Total Cost</Text>
-            <Text style={styles.cardValue}>₱{totalCost.toFixed(2)}</Text>
-          </View>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Total Profit</Text>
-            <Text style={styles.cardValue}>₱{totalProfit.toFixed(2)}</Text>
+          <View style={styles.cardRow}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Total Cost</Text>
+              <Text style={styles.cardValue}>₱{totalCost.toFixed(2)}</Text>
+            </View>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Total Profit</Text>
+              <Text style={styles.cardValue}>₱{totalProfit.toFixed(2)}</Text>
+            </View>
           </View>
         </View>
 
@@ -666,6 +672,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     marginBottom: 20,
+  },
+  cardRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
   card: {
     backgroundColor: '#fff',

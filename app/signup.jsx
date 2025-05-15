@@ -23,7 +23,8 @@ const SignupScreen = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
-
+  const [successModalVisible, setSuccessModalVisible] = useState(false);
+  
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -78,17 +79,7 @@ const SignupScreen = () => {
 
       await setDoc(doc(db, 'users', user.uid), userData);
 
-      Alert.alert(
-        'Success!',
-        'Your account has been created successfully. Please log in.',
-        [
-          {
-            text: 'OK',
-            onPress: () => router.replace('/login') // Navigate to login screen
-          }
-        ],
-        { cancelable: false }
-      );
+      setSuccessModalVisible(true); 
     } catch (err) {
       // Handle errors from both signUp and setDoc
       let errorMessage = 'An unknown error occurred.';
@@ -185,6 +176,34 @@ const SignupScreen = () => {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Success Modal */}
+      <Modal
+        visible={successModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSuccessModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.successModal}>
+            <Ionicons name="checkmark-circle" size={80} color="#4776E6" />
+            <Text style={styles.successTitle}>Success!</Text>
+            <Text style={styles.successMessage}>
+              Your account has been created successfully.
+            </Text>
+            <TouchableOpacity
+              style={styles.successButton}
+              onPress={() => {
+                setSuccessModalVisible(false);
+                router.replace('/');
+              }}
+            >
+              <Text style={styles.successButtonText}>OK</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
     </LinearGradient>
   );
 };
@@ -303,6 +322,48 @@ const styles = StyleSheet.create({
     color: '#4776E6',
     fontWeight: 'bold',
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  successModal: {
+    width: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  successTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#4CAF50',
+    marginTop: 10,
+  },
+  successMessage: {
+    fontSize: 16,
+    color: '#555',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  successButton: {
+    backgroundColor: '#4776E6',
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    marginTop: 15,
+  },
+  successButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  }
 });
 
 export default SignupScreen; 

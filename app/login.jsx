@@ -21,6 +21,7 @@ const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passwordVisible, setPasswordVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -30,6 +31,7 @@ const LoginScreen = () => {
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const inputCardTranslateY = useRef(new Animated.Value(50)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
+  const loadingScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -46,6 +48,29 @@ const LoginScreen = () => {
       }),
     ]).start();
   }, []);
+
+  useEffect(() => {
+    if (loading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(loadingScale, {
+            toValue: 1.2,
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(loadingScale, {
+            toValue: 1,
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      loadingScale.setValue(1);
+    }
+  }, [loading]);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -106,6 +131,18 @@ const LoginScreen = () => {
       Alert.alert('Login Error', errorMessage);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Animated.Image
+          source={logoImage}
+          style={[styles.loadingLogo, { transform: [{ scale: loadingScale }] }]}
+        />
+        <Text style={styles.loadingText}>Logging in...</Text>
+      </View>
+    );
+  }
 
   return (
     <LinearGradient colors={['#4776E6', '#fff']} style={styles.gradient}>
@@ -320,6 +357,22 @@ const styles = StyleSheet.create({
     color: '#4776E6',
     fontWeight: 'bold',
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingLogo: {
+    width: 120,
+    height: 120,
+    marginBottom: 20,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#4776E6',
+    fontWeight: 'bold',
+  }
 });
 
 export default LoginScreen; 
