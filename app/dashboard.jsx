@@ -510,11 +510,11 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.7)', // Dark overlay for focus
+    backgroundColor: 'rgba(0, 0, 0, 0.8)', // Dark overlay for focus
   },
   modalContent: {
     width: '90%',
-    backgroundColor: 'white',
+    backgroundColor: '#fff',
     borderRadius: 20, // Rounded corners
     padding: 20,
     alignItems: 'center',
@@ -528,11 +528,13 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     marginBottom: 15,
+    overflow: 'hidden', // Ensures seamless edges
+    borderRadius: 20, // Matches modal content's border radius
   },
   modalImage: {
-    width: 150,
-    height: 150,
-    borderRadius: 10,
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover', // Ensures the image covers the container seamlessly
   },
   modalDetailsContainer: {
     width: '100%',
@@ -540,21 +542,21 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   modalTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
     textAlign: 'center',
   },
   modalDescription: {
-    fontSize: 14,
+    fontSize: 16,
     color: '#666',
     marginBottom: 10,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
   },
   modalPrice: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
     color: '#4776E6',
     marginBottom: 10,
@@ -610,10 +612,18 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 10,
   },
-  modalButton: {
+  modalButtonPrimary: {
     flex: 1,
     marginHorizontal: 5,
     backgroundColor: '#4776E6',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  modalButtonSecondary: {
+    flex: 1,
+    marginHorizontal: 5,
+    backgroundColor: '#2e7d32',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',

@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, Image, TextInput, Animated, TouchableOpacity, F
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
+import { addToCart } from '@/services/addToCart';
 
 import cscLogo from '../assets/images/STORM.png';
 
@@ -47,9 +48,26 @@ const StormScreen = () => {
     setModalVisible(true);
   };
 
-  const handleAddToCart = () => {
-    setModalVisible(false);
-    alert(`${selectedProduct.name} has been added to your cart.`);
+  const cartId = 'demo-cart-id';
+
+  const handleAddToCart = async () => {
+    if (!selectedProduct) return;
+    try {
+      // Convert price to number
+      const priceNumber = Number(String(selectedProduct.price).replace(/[^\d.]/g, ''));
+      const product = {
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        price: priceNumber,
+        quantity: 1,
+      };
+      await addToCart(cartId, product, 1);
+      setModalVisible(false);
+      alert(`${selectedProduct.name} has been added to your cart.`);
+    } catch (error) {
+      alert('Failed to add to cart: ' + (error?.message || error));
+      console.error(error);
+    }
   };
 
   const handleBuyNow = () => {
