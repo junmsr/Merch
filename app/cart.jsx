@@ -1,37 +1,52 @@
-import React, { useState, useRef, useCallback, useLayoutEffect } from 'react';
+import React, { useState, useRef, useCallback, useLayoutEffect, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Animated } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
-
-const cartItems = [
-  {
-    id: 1,
-    title: "CSC Shirt",
-    description: "Premium cotton fabric",
-    price: 499,
-    image: "https://via.placeholder.com/120x80",
-    quantity: 1,
-  },
-  {
-    id: 2,
-    title: "Tech Shirt",
-    description: "Comfort fit with logo",
-    price: 599,
-    image: "https://via.placeholder.com/120x80",
-    quantity: 1,
-  },
-];
+import { getAllCarts } from '@/services/addToCart';
 
 const CartScreen = () => {
   const router = useRouter();
   const navigation = useNavigation();
-  const [items, setItems] = useState(cartItems);
+  const [items, setItems] = useState([]);
   const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+  useEffect(() => {
+      let isMounted = true;
+      const fetchCarts = async () => {
+        try {
+          const carts = await getAllCarts();
+          if (isMounted) {
+            if (carts.length > 0) {
+              // You may want to filter for the current user's cart here
+              setItems(
+                carts[0].items.map(item => ({
+                  id: item.product?.id || item.id,
+                  title: item.product?.name || item.title,
+                  description: item.product?.description || '',
+                  price: item.product?.price || item.price,
+                  image: item.product?.image || item.image,
+                  quantity: item.quantity,
+                }))
+              );
+            } else {
+              setItems([]);
+            }
+          }
+        } catch (error) {
+          if (isMounted) {
+            console.error('Failed to fetch carts:', error);
+          }
+        }
+      };
+      fetchCarts();
+      return () => {
+        isMounted = false;
+      };
+    }, []);
 
   // Animation references for bottom navigation
   const scaleHome = useRef(new Animated.Value(1)).current;
