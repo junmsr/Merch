@@ -1,9 +1,10 @@
-import React, { useRef, useState, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, Image, TextInput, Animated, TouchableOpacity, FlatList, Modal, TouchableWithoutFeedback } from 'react-native';
+import React, { useRef, useState, useLayoutEffect, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TextInput, Animated, TouchableOpacity, FlatList, Modal, TouchableWithoutFeedback, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
 import { addToCart } from '@/services/addToCart';
+import { fetchProducts, fetchCategoriesForCollege } from '../services/productService';
 
 import cscLogo from '../assets/images/IT.png';
 
@@ -27,48 +28,81 @@ const CircuitsScreen = () => {
   const [activeTab, setActiveTab] = useState('home');
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
-  const [selectedFilter, setSelectedFilter] = useState('All'); // Default filter
+  const [selectedFilter, setSelectedFilter] = useState('All');
+  const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [filters, setFilters] = useState(['All']);
+  const cartId = 'demo-cart-id';
+  const [modalQuantity, setModalQuantity] = useState(1);
 
-  const products = [
-    { id: '1', name: 'Shirt 1', description: 'Comfortable cotton shirt.', price: '₱499', category: 'Shirts', image: 'https://via.placeholder.com/150' },
-    { id: '2', name: 'Tote Bag 1', description: 'Eco-friendly tote bag.', price: '₱299', category: 'Tote Bags', image: 'https://via.placeholder.com/150' },
-    { id: '3', name: 'Lanyard 1', description: 'Durable lanyard for keys.', price: '₱99', category: 'Lanyards', image: 'https://via.placeholder.com/150' },
-    { id: '4', name: 'Pin 1', description: 'Stylish enamel pin.', price: '₱49', category: 'Pins', image: 'https://via.placeholder.com/150' },
-    { id: '5', name: 'Sticker 1', description: 'High-quality vinyl sticker.', price: '₱20', category: 'Stickers', image: 'https://via.placeholder.com/150' },
-    { id: '6', name: 'Shirt 2', description: 'Premium cotton shirt.', price: '₱599', category: 'Shirts', image: 'https://via.placeholder.com/150' },
-    { id: '7', name: 'Tote Bag 2', description: 'Stylish tote bag.', price: '₱399', category: 'Tote Bags', image: 'https://via.placeholder.com/150' },
-  ];
+  useEffect(() => {
+    const loadCategoriesAndProducts = async () => {
+      try {
+        // Fetch categories for the college
+        const categories = await fetchCategoriesForCollege('circuits');
+        setFilters(['All', ...categories.map(cat => cat.charAt(0).toUpperCase() + cat.slice(1))]);
+        
+        // Fetch products for the selected category
+        if (selectedFilter !== 'All') {
+          const categoryId = selectedFilter.toLowerCase();
+          const fetchedProducts = await fetchProducts('circuits', categoryId);
+          // Attach category to each product and filter out out-of-stock
+          setProducts(fetchedProducts.filter(p => p.stock > 0).map(product => ({ ...product, category: categoryId })));
+        } else {
+          // If 'All' is selected, fetch products from all categories
+          const allProducts = [];
+          for (const category of categories) {
+            const categoryProducts = await fetchProducts('circuits', category);
+            // Attach category to each product and filter out out-of-stock
+            allProducts.push(...categoryProducts.filter(p => p.stock > 0).map(product => ({ ...product, category })));
+          }
+          setProducts(allProducts);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-  const filters = ['All', 'Shirts', 'Tote Bags', 'Lanyards', 'Pins', 'Stickers'];
-
-  const filteredProducts = selectedFilter === 'All' ? products : products.filter((product) => product.category === selectedFilter);
+    loadCategoriesAndProducts();
+  }, [selectedFilter]);
 
   const handleProductPress = (product) => {
     setSelectedProduct(product);
+    setModalQuantity(1);
     setModalVisible(true);
   };
 
-const cartId = 'demo-cart-id';
-
-const handleAddToCart = async () => {
-  if (!selectedProduct) return;
-  try {
-    // Convert price to number
-    const priceNumber = Number(String(selectedProduct.price).replace(/[^\d.]/g, ''));
-    const product = {
-      id: selectedProduct.id,
-      name: selectedProduct.name,
-      price: priceNumber,
-      quantity: 1,
-    };
-    await addToCart(cartId, product, 1);
-    setModalVisible(false);
-    alert(`${selectedProduct.name} has been added to your cart.`);
-  } catch (error) {
-    alert('Failed to add to cart: ' + (error?.message || error));
-    console.error(error);
-  }
-};
+  const handleAddToCart = async () => {
+    if (!selectedProduct) return;
+    const categoryValue = selectedFilter === 'All'
+      ? (selectedProduct.category ? selectedProduct.category.toLowerCase() : null)
+      : selectedFilter.toLowerCase();
+    if (!categoryValue) {
+      alert('Product category is missing. Please try another product.');
+      return;
+    }
+    try {
+      const priceNumber = Number(String(selectedProduct.price).replace(/[^\d.]/g, ''));
+      const product = {
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        price: priceNumber,
+        quantity: modalQuantity,
+        college: 'circuits',
+        category: categoryValue,
+        description: selectedProduct.description,
+        imageUrl: selectedProduct.imageUrl
+      };
+      await addToCart(cartId, product, modalQuantity);
+      setModalVisible(false);
+      alert(`${selectedProduct.name} has been added to your cart.`);
+    } catch (error) {
+      alert('Failed to add to cart: ' + (error?.message || error));
+      console.error(error);
+    }
+  };
 
   const handleBuyNow = () => {
     setModalVisible(false);
@@ -128,21 +162,36 @@ const handleAddToCart = async () => {
       </View>
 
       {/* Product List */}
-      <FlatList
-        data={filteredProducts}
-        keyExtractor={(item) => item.id}
-        numColumns={2} // Display 2 columns
-        columnWrapperStyle={styles.row} // Style for rows
-        renderItem={({ item }) => (
-          <TouchableOpacity style={styles.productCard} onPress={() => handleProductPress(item)}>
-            <Image source={{ uri: item.image }} style={styles.productImage} />
-            <Text style={styles.productName}>{item.name}</Text>
-            <Text style={styles.productDescription}>{item.description}</Text>
-            <Text style={styles.productPrice}>{item.price}</Text>
-          </TouchableOpacity>
-        )}
-        contentContainerStyle={styles.listContainer}
-      />
+      {isLoading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#4776E6" />
+          <Text style={styles.loadingText}>Loading products...</Text>
+        </View>
+      ) : products.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="alert-circle-outline" size={48} color="#888" />
+          <Text style={styles.emptyText}>No products available in this category yet.</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={products}
+          keyExtractor={(item) => item.id}
+          numColumns={2}
+          columnWrapperStyle={styles.row}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={styles.productCard} onPress={() => handleProductPress(item)}>
+              <Image 
+                source={{ uri: item.imageUrl || 'https://via.placeholder.com/150' }} 
+                style={styles.productImage} 
+              />
+              <Text style={styles.productName}>{item.name}</Text>
+              <Text style={styles.productDescription}>{item.description}</Text>
+              <Text style={styles.productPrice}>₱{item.price.toFixed(2)}</Text>
+            </TouchableOpacity>
+          )}
+          contentContainerStyle={styles.listContainer}
+        />
+      )}
 
       {/* Product Modal */}
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
@@ -156,6 +205,24 @@ const handleAddToCart = async () => {
                     <Text style={styles.modalTitle}>{selectedProduct.name}</Text>
                     <Text style={styles.modalDescription}>{selectedProduct.description}</Text>
                     <Text style={styles.modalPrice}>{selectedProduct.price}</Text>
+                    {/* Quantity Selector */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
+                      <TouchableOpacity
+                        onPress={() => setModalQuantity(q => Math.max(1, q - 1))}
+                        style={{ padding: 8, backgroundColor: '#eee', borderRadius: 5, marginRight: 10 }}
+                      >
+                        <Ionicons name="remove" size={20} color="#4776E6" />
+                      </TouchableOpacity>
+                      <Text style={{ fontSize: 18, fontWeight: 'bold', marginHorizontal: 10 }}>{modalQuantity}</Text>
+                      <TouchableOpacity
+                        onPress={() => setModalQuantity(q => Math.min(q + 1, selectedProduct.stock || 1))}
+                        style={{ padding: 8, backgroundColor: '#eee', borderRadius: 5, marginLeft: 10 }}
+                        disabled={modalQuantity >= (selectedProduct.stock || 1)}
+                      >
+                        <Ionicons name="add" size={20} color="#4776E6" />
+                      </TouchableOpacity>
+                      <Text style={{ marginLeft: 10, color: '#666' }}>Stock: {selectedProduct.stock || 1}</Text>
+                    </View>
                     <View style={styles.modalButtons}>
                       <TouchableOpacity style={styles.modalButton} onPress={handleAddToCart}>
                         <Text style={styles.modalButtonText}>Add to Cart</Text>
@@ -383,6 +450,29 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
     color: '#333',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
   },
 });
 

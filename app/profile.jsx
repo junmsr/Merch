@@ -1,9 +1,11 @@
 import React, { useRef, useState, useEffect, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated, Modal, Pressable, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Animated, Modal, Pressable, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
+import { auth } from '@/services/firebase.config';
+import { getUserProfile, getUserTransactions, updateTransactionStatus } from '@/services/transactionService';
 
 import ProfileImage from '../assets/images/profile.png';
 import SampleProductImage from '../assets/images/profile.png'; // Replace with your sample product image path
@@ -28,20 +30,29 @@ const ProfileScreen = () => {
 
   const [activeTab, setActiveTab] = useState('profile');
   const [modalVisible, setModalVisible] = useState(false);
-  const [modalContent, setModalContent] = useState('');
-  const [accountSettingsModalVisible, setAccountSettingsModalVisible] = useState(false);
-  const [activeSection, setActiveSection] = useState(null); // Track the active section
-  const slideAnimation = useRef(new Animated.Value(-300)).current; // Initial position off-screen
-  const [isLoading, setIsLoading] = useState(true); // Track loading state
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
+  const [activeSection, setActiveSection] = useState('To Receive');
+  const [isLoading, setIsLoading] = useState(true);
+  const [userProfile, setUserProfile] = useState(null);
+  const [transactions, setTransactions] = useState([]);
 
   useEffect(() => {
-    // Simulate resource loading (e.g., fetching data or assets)
-    const loadResources = async () => {
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate a 2-second loading time
-      setIsLoading(false); // Set loading to false once resources are ready
+    const loadUserData = async () => {
+      try {
+        const profile = await getUserProfile();
+        setUserProfile(profile);
+        
+        const userTransactions = await getUserTransactions();
+        setTransactions(userTransactions);
+      } catch (error) {
+        console.error('Error loading user data:', error);
+        Alert.alert('Error', 'Failed to load user data');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    loadResources();
+    loadUserData();
   }, []);
 
   useEffect(() => {
@@ -77,174 +88,118 @@ const ProfileScreen = () => {
     if (route) router.push(route);
   };
 
-  const openModal = (section) => {
-    let content = '';
-    switch (section) {
-      case 'To Pay':
-        content = (
-          <View style={styles.productDetails}>
-            <Image source={SampleProductImage} style={styles.productImage} />
-            <Text style={styles.productName}>Sample Product</Text>
-            <Text style={styles.productDescription}>This is a sample product description for the "To Pay" section.</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Pay Now</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Cancel Order</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        );
-        break;
-      case 'To Ship':
-        content = (
-          <View style={styles.productDetails}>
-            <Image source={SampleProductImage} style={styles.productImage} />
-            <Text style={styles.productName}>Sample Product</Text>
-            <Text style={styles.productDescription}>This is a sample product description for the "To Ship" section.</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Track Order</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Contact Seller</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        );
-        break;
-      case 'To Receive':
-        content = (
-          <View style={styles.productDetails}>
-            <Image source={SampleProductImage} style={styles.productImage} />
-            <Text style={styles.productName}>Sample Product</Text>
-            <Text style={styles.productDescription}>This is a sample product description for the "To Receive" section.</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Confirm Receipt</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Report Issue</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        );
-        break;
-      case 'To Rate':
-        content = (
-          <View style={styles.productDetails}>
-            <Image source={SampleProductImage} style={styles.productImage} />
-            <Text style={styles.productName}>Sample Product</Text>
-            <Text style={styles.productDescription}>This is a sample product description for the "To Rate" section.</Text>
-            <View style={styles.modalButtons}>
-              <TouchableOpacity style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Rate Product</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.modalButton}>
-                <Text style={styles.modalButtonText}>Write Review</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        );
-        break;
-      default:
-        content = <Text>No content available</Text>;
-    }
-    setModalContent(content);
-    setModalVisible(true);
-  };
-
-  const openAccountSettingsModal = () => {
-    setAccountSettingsModalVisible(true);
-  };
-
-  const handleLogout = () => {
-    router.push('/');
-  };
-
-  const handleSectionPress = (section) => {
-    if (activeSection === section) {
-      // Close the section if it's already active
-      Animated.timing(slideAnimation, {
-        toValue: -300, // Slide out of view
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => setActiveSection(null)); // Reset activeSection after animation
-    } else {
-      // Open the section
-      setActiveSection(section); // Set the active section
-      Animated.timing(slideAnimation, {
-        toValue: 0, // Slide into view
-        duration: 300,
-        useNativeDriver: true,
-      }).start();
+  const handleConfirmReceipt = async (transactionId) => {
+    try {
+      await updateTransactionStatus(transactionId, 'completed');
+      // Refresh transactions
+      const updatedTransactions = await getUserTransactions();
+      setTransactions(updatedTransactions);
+      setModalVisible(false);
+      Alert.alert('Success', 'Order marked as received');
+    } catch (error) {
+      console.error('Error confirming receipt:', error);
+      Alert.alert('Error', 'Failed to confirm receipt');
     }
   };
 
-  const renderProducts = (section) => {
-    if (activeSection !== section) return null; // Only render products for the active section
-  
-    // Sample product data
-    const products = [
-      { id: 1, name: 'Product 1', description: 'Description for Product 1', image: SampleProductImage },
-      { id: 2, name: 'Product 2', description: 'Description for Product 2', image: SampleProductImage },
-      { id: 3, name: 'Product 3', description: 'Description for Product 3', image: SampleProductImage },
-      { id: 4, name: 'Product 4', description: 'Description for Product 4', image: SampleProductImage },
-    ];
-  
-    return (
-      <Animated.View style={[styles.productContainer, { transform: [{ translateX: slideAnimation }] }]}>
-        {products.map((product) => (
-          <View key={product.id} style={styles.productCard}>
-            <View style={styles.productDetails}>
-              <Image source={product.image} style={styles.productImage} />
-              <View style={styles.productInfo}>
-                <Text style={styles.productName}>{product.name}</Text>
-                <Text style={styles.productDescription}>{product.description}</Text>
-              </View>
-            </View>
-  
-            {/* Functional Buttons */}
-            {section === 'To Pay' && (
-              <TouchableOpacity style={styles.actionButton} onPress={() => alert(`Pay for ${product.name}`)}>
-                <Text style={styles.actionButtonText}>Pay Now</Text>
-              </TouchableOpacity>
-            )}
-            {section === 'To Ship' && (
-              <TouchableOpacity style={styles.actionButton} onPress={() => alert(`Track ${product.name}`)}>
-                <Text style={styles.actionButtonText}>Track Order</Text>
-              </TouchableOpacity>
-            )}
-            {section === 'To Receive' && (
-              <TouchableOpacity style={styles.actionButton} onPress={() => alert(`Confirm receipt of ${product.name}`)}>
-                <Text style={styles.actionButtonText}>Confirm Receipt</Text>
-              </TouchableOpacity>
-            )}
-            {section === 'To Rate' && (
-              <View style={styles.ratingContainer}>
-                <Text style={styles.ratingText}>Rate this Product:</Text>
-                <View style={styles.stars}>
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <TouchableOpacity key={star} onPress={() => alert(`Rated ${star} Stars for ${product.name}`)}>
-                      <Ionicons name="star" size={24} color="#FFD700" />
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            )}
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      router.push('/');
+    } catch (error) {
+      console.error('Error signing out:', error);
+      Alert.alert('Error', 'Failed to sign out');
+    }
+  };
+
+  const renderTransactionItem = (transaction) => (
+    <TouchableOpacity
+      key={transaction.id}
+      style={styles.transactionCard}
+      onPress={() => {
+        setSelectedTransaction(transaction);
+        setModalVisible(true);
+      }}
+    >
+      <View style={styles.transactionHeader}>
+        <Text style={styles.transactionDate}>
+          {new Date(transaction.createdAt?.toDate()).toLocaleDateString()}
+        </Text>
+        <Text style={[
+          styles.transactionStatus,
+          { color: transaction.status === 'completed' ? '#4CAF50' : '#FFA000' }
+        ]}>
+          {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+        </Text>
+      </View>
+      <View style={styles.transactionItems}>
+        {transaction.items.map((item, index) => (
+          <View key={index} style={styles.transactionItem}>
+            <Text style={styles.itemName}>{item.name}</Text>
+            <Text style={styles.itemDetails}>
+              {item.quantity}x • ₱{item.price.toFixed(2)} • {item.college}
+            </Text>
           </View>
         ))}
-      </Animated.View>
-    );
-  };
+      </View>
+      <Text style={styles.transactionTotal}>
+        Total: ₱{transaction.totalAmount.toFixed(2)}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  const renderTransactionModal = () => (
+    <Modal
+      visible={modalVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setModalVisible(false)}
+    >
+      <View style={styles.modalContainer}>
+        <View style={styles.modalContent}>
+          {selectedTransaction && (
+            <>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Order Details</Text>
+                <TouchableOpacity onPress={() => setModalVisible(false)}>
+                  <Ionicons name="close" size={24} color="#333" />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={styles.modalScroll}>
+                {selectedTransaction.items.map((item, index) => (
+                  <View key={index} style={styles.modalItem}>
+                    <Text style={styles.modalItemName}>{item.name}</Text>
+                    <Text style={styles.modalItemDetails}>
+                      Quantity: {item.quantity} • ₱{item.price.toFixed(2)} each
+                    </Text>
+                    <Text style={styles.modalItemCollege}>{item.college}</Text>
+                  </View>
+                ))}
+                <Text style={styles.modalTotal}>
+                  Total: ₱{selectedTransaction.totalAmount.toFixed(2)}
+                </Text>
+                {selectedTransaction.status === 'pending' && (
+                  <TouchableOpacity
+                    style={styles.confirmButton}
+                    onPress={() => handleConfirmReceipt(selectedTransaction.id)}
+                  >
+                    <Text style={styles.confirmButtonText}>Confirm Receipt</Text>
+                  </TouchableOpacity>
+                )}
+              </ScrollView>
+            </>
+          )}
+        </View>
+      </View>
+    </Modal>
+  );
 
   if (isLoading) {
     return (
       <View style={styles.loadingContainer}>
         {/* Use the Vintage.png logo */}
         <Image source={require('../assets/images/Vintage.png')} style={styles.loadingLogo} />
-        <Text style={styles.loadingText}>Loading resources...</Text>
+        <Text style={styles.loadingText}>Loading profile...</Text>
       </View>
     );
   }
@@ -271,27 +226,27 @@ const ProfileScreen = () => {
           <View style={styles.profileCardSolid}>
             <Image source={ProfileImage} style={styles.profileImage} />
             <View style={styles.profileInfo}>
-              <Text style={styles.profileName}>profile Perez</Text>
-              <Text style={styles.profileEmail}>profileperez@gmail.com</Text>
+              <Text style={styles.profileName}>{userProfile?.name || 'User'}</Text>
+              <Text style={styles.profileEmail}>{userProfile?.email || 'user@email.com'}</Text>
             </View>
           </View>
         </Animated.View>
 
-        {/* My Purchases Section */}
+        {/* My Orders Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>My Purchases</Text>
+          <Text style={styles.sectionTitle}>My Orders</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.horizontalScroll}>
-            {['To Pay', 'To Ship', 'To Receive', 'To Rate'].map((section) => (
+            {['To Receive'].map((section) => (
               <TouchableOpacity
                 key={section}
                 style={[
                   styles.purchaseCard,
                   activeSection === section && styles.activePurchaseCard,
                 ]}
-                onPress={() => handleSectionPress(section)}
+                onPress={() => setActiveSection(section)}
               >
                 <MaterialCommunityIcons
-                  name={section === 'To Pay' ? 'credit-card' : section === 'To Ship' ? 'truck' : section === 'To Receive' ? 'package-variant' : 'star'}
+                  name="package-variant"
                   size={32}
                   color={activeSection === section ? '#4776E6' : '#888'}
                 />
@@ -299,59 +254,56 @@ const ProfileScreen = () => {
               </TouchableOpacity>
             ))}
           </ScrollView>
-          {activeSection && renderProducts(activeSection)}
+          
+          {/* Transactions List */}
+          <View style={styles.transactionsList}>
+            {transactions
+              .filter(t => t.status === 'pending')
+              .map(renderTransactionItem)}
+          </View>
         </View>
 
-        {/* Account Options */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account Options</Text>
-          <TouchableOpacity style={styles.option} onPress={openAccountSettingsModal}>
-            <Ionicons name="settings" size={24} color="#4776E6" />
-            <Text style={styles.optionText}>Account Settings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.option}>
-            <Ionicons name="help-circle" size={24} color="#4776E6" />
-            <Text style={styles.optionText}>Help Center</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.option} onPress={handleLogout}>
-            <Ionicons name="log-out" size={24} color="#4776E6" />
-            <Text style={styles.optionText}>Logout</Text>
-          </TouchableOpacity>
-        </View>
+        {/* Logout Button */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
       </ScrollView>
 
-      {/* Fixed Bottom Navigation */}
-     <View style={styles.bottomNav}>
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => handlePress(scaleHome, opacityHome, '/dashboard', 'home')}
-            >
-              <Animated.View style={{ transform: [{ scale: scaleHome }] }}>
-                <Ionicons name="home" size={28} color={activeTab === 'home' ? '#4776E6' : '#888'} />
-              </Animated.View>
-              <Animated.Text style={[styles.navText, { opacity: opacityHome }]}>Home</Animated.Text>
-            </TouchableOpacity>
+      {/* Transaction Modal */}
+      {renderTransactionModal()}
+
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleHome, opacityHome, '/dashboard', 'home')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleHome }] }}>
+            <Ionicons name="home" size={28} color={activeTab === 'home' ? '#4776E6' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityHome }]}>Home</Animated.Text>
+        </TouchableOpacity>
     
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => handlePress(scaleCart, opacityCart, '/cart', 'cart')}
-            >
-              <Animated.View style={{ transform: [{ scale: scaleCart }] }}>
-                <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#4776E6' : '#888'} />
-              </Animated.View>
-              <Animated.Text style={[styles.navText, { opacity: opacityCart }]}>Cart</Animated.Text>
-            </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleCart, opacityCart, '/cart', 'cart')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleCart }] }}>
+            <Ionicons name="cart" size={28} color={activeTab === 'cart' ? '#4776E6' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityCart }]}>Cart</Animated.Text>
+        </TouchableOpacity>
     
-            <TouchableOpacity
-              style={styles.navItem}
-              onPress={() => handlePress(scaleProfile, opacityProfile, '/profile', 'profile')}
-            >
-              <Animated.View style={{ transform: [{ scale: scaleProfile }] }}>
-                <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#4776E6' : '#888'} />
-              </Animated.View>
-              <Animated.Text style={[styles.navText, { opacity: opacityProfile }]}>Profile</Animated.Text>
-            </TouchableOpacity>
-          </View>
+        <TouchableOpacity
+          style={styles.navItem}
+          onPress={() => handlePress(scaleProfile, opacityProfile, '/profile', 'profile')}
+        >
+          <Animated.View style={{ transform: [{ scale: scaleProfile }] }}>
+            <Ionicons name="person" size={28} color={activeTab === 'profile' ? '#4776E6' : '#888'} />
+          </Animated.View>
+          <Animated.Text style={[styles.navText, { opacity: opacityProfile }]}>Profile</Animated.Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -666,6 +618,124 @@ const styles = StyleSheet.create({
     marginBottom: 20, // Add spacing between the logo and the text
     resizeMode: 'contain', // Ensure the logo maintains its aspect ratio
     borderRadius: 100,
+  },
+  transactionCard: {
+    backgroundColor: 'white',
+    borderRadius: 10,
+    padding: 15,
+    marginBottom: 10,
+    elevation: 2,
+  },
+  transactionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  transactionDate: {
+    fontSize: 14,
+    color: '#666',
+  },
+  transactionStatus: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  transactionItems: {
+    marginBottom: 10,
+  },
+  transactionItem: {
+    marginBottom: 5,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  itemDetails: {
+    fontSize: 14,
+    color: '#666',
+  },
+  transactionTotal: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4776E6',
+    textAlign: 'right',
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  modalScroll: {
+    maxHeight: '80%',
+  },
+  modalItem: {
+    marginBottom: 15,
+    paddingBottom: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
+  modalItemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 5,
+  },
+  modalItemDetails: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 5,
+  },
+  modalItemCollege: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  modalTotal: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#4776E6',
+    marginTop: 15,
+    textAlign: 'right',
+  },
+  confirmButton: {
+    backgroundColor: '#4776E6',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  confirmButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: '#FF3B30',
+    padding: 15,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 20,
+    marginHorizontal: 20,
+  },
+  logoutButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  transactionsList: {
+    marginTop: 20,
   },
 });
 

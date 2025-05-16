@@ -1,29 +1,28 @@
 import React, { useRef, useState, useLayoutEffect, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, TextInput, Animated, Modal, Button } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Dimensions, TextInput, Animated, Modal, Button, TouchableWithoutFeedback, ActivityIndicator, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
-
+import { addToCart } from '@/services/addToCart';
+import { fetchProducts, fetchCategoriesForCollege } from '../services/productService';
 import Logo from '../assets/images/Vintage.png';
 
-// import cscLogo from '../assets/images/logo.png';
+// Import college logos
 import IT from '../assets/images/IT.png';
 import CHEM from '../assets/images/CHEM.png';
-import LOGO from '../assets/images/logo.png';
 import BIO from '../assets/images/BIO.png';
 import CS from '../assets/images/CS.png';
 import STORM from '../assets/images/STORM.png';
-import Junmar from '../assets/images/profile.png'; // Import the Junmar.png image
+import Profile from '../assets/images/profile.png'; // Import the Junmar.png image
 
 const { width } = Dimensions.get('window');
 
 const categories = [
-  { name: "Circuits", image: IT},
-  { name: "Chess", image: CHEM },
-  { name: "CSC", image: LOGO },
-  { name: "Symbiosis", image: BIO },
-  { name: "Access", image: CS },
-  { name: "STORM", image: STORM },
+  { name: 'Circuits', image: IT },
+  { name: 'Chess', image: CHEM },
+  { name: 'Symbiosis', image: BIO },
+  { name: 'Access', image: CS },
+  { name: 'STORM', image: STORM },
 ];
 
 const sections = [
@@ -119,9 +118,108 @@ const DashboardScreen = () => {
   const opacityProfile = useRef(new Animated.Value(0.5)).current;
 
   const [activeTab, setActiveTab] = useState('home');
-
   const [modalVisible, setModalVisible] = useState(false);
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [products, setProducts] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [categoryProducts, setCategoryProducts] = useState([]);
+  const [isCategoryLoading, setIsCategoryLoading] = useState(false);
+  const [modalQuantity, setModalQuantity] = useState(1);
+
+  useEffect(() => {
+    const loadAllProducts = async () => {
+      setIsLoading(true);
+      try {
+        const allProducts = {};
+        const colleges = ['circuits', 'chess', 'symbiosis', 'access', 'storm'];
+        
+        for (const college of colleges) {
+          const categories = await fetchCategoriesForCollege(college);
+          const collegeProducts = {};
+          
+          for (const category of categories) {
+            const categoryProducts = await fetchProducts(college, category);
+            // Attach category to each product
+            collegeProducts[category] = categoryProducts.filter(p => p.stock > 0).map(product => ({ ...product, category }));
+          }
+          
+          allProducts[college] = collegeProducts;
+        }
+        
+        setProducts(allProducts);
+      } catch (error) {
+        console.error('Error loading products:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadAllProducts();
+  }, []);
+
+  const handleViewAll = async (category) => {
+    setSelectedCategory(category);
+    setIsCategoryLoading(true);
+    setCategoryModalVisible(true);
+    
+    try {
+      const colleges = ['circuits', 'chess', 'symbiosis', 'access', 'storm'];
+      const allCategoryProducts = [];
+      
+      for (const college of colleges) {
+        const categoryProducts = await fetchProducts(college, category.toLowerCase());
+        // Attach category to each product
+        const productsWithCollege = categoryProducts.filter(p => p.stock > 0).map(product => ({
+          ...product,
+          college: college.charAt(0).toUpperCase() + college.slice(1),
+          category: category.toLowerCase()
+        }));
+        allCategoryProducts.push(...productsWithCollege);
+      }
+      
+      setCategoryProducts(allCategoryProducts);
+    } catch (error) {
+      console.error('Error loading category products:', error);
+    } finally {
+      setIsCategoryLoading(false);
+    }
+  };
+
+  const handleProductPress = (product) => {
+    setSelectedProduct(product);
+    setModalQuantity(1);
+    setModalVisible(true);
+  };
+
+  const handleAddToCart = async () => {
+    if (!selectedProduct) return;
+    try {
+      const priceNumber = Number(String(selectedProduct.price).replace(/[^\d.]/g, ''));
+      const product = {
+        id: selectedProduct.id,
+        name: selectedProduct.name,
+        price: priceNumber,
+        quantity: modalQuantity,
+        college: selectedProduct.college.toLowerCase(),
+        category: selectedProduct.category.toLowerCase(),
+        description: selectedProduct.description,
+        imageUrl: selectedProduct.imageUrl
+      };
+      await addToCart('demo-cart-id', product, modalQuantity);
+      setModalVisible(false);
+      alert(`${selectedProduct.name} has been added to your cart.`);
+    } catch (error) {
+      alert('Failed to add to cart: ' + (error?.message || error));
+      console.error(error);
+    }
+  };
+
+  const handleBuyNow = () => {
+    setModalVisible(false);
+    router.push('/checkout');
+  };
 
   const handlePress = (scaleRef, opacityRef, route, tabName) => {
     // Reset all opacities
@@ -145,27 +243,21 @@ const DashboardScreen = () => {
 
     Animated.timing(opacityRef, { toValue: 1, duration: 200, useNativeDriver: true }).start();
 
-    // Set the active tab
     setActiveTab(tabName);
-
-    // Navigate to the route after animation
     if (route) router.push(route);
   };
 
-  const handleProductPress = (product) => {
-    setSelectedProduct(product);
-    setModalVisible(true);
-  };
-
-  const handleAddToCart = () => {
-    setModalVisible(false);
-    console.log(`${selectedProduct.title} added to cart`);
-  };
-
-  const handleBuyNow = () => {
-    setModalVisible(false);
-    console.log(`Proceeding to buy ${selectedProduct.title}`);
-    router.push('/checkout');
+  const getFeaturedProducts = (category) => {
+    const featuredProducts = [];
+    Object.entries(products).forEach(([college, categories]) => {
+      if (categories[category.toLowerCase()]) {
+        featuredProducts.push(...categories[category.toLowerCase()].slice(0, 3).map(product => ({
+          ...product,
+          college: college.charAt(0).toUpperCase() + college.slice(1)
+        })));
+      }
+    });
+    return featuredProducts.slice(0, 3);
   };
 
   return (
@@ -197,137 +289,170 @@ const DashboardScreen = () => {
 
       {/* Categories */}
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categoryContainer}>
-  {categories.map((category, index) => (
-    <TouchableOpacity
-      key={index}
-      style={styles.category}
-      activeOpacity={0.8}
-      onPress={() => {
-        switch (category.name) {
-          case 'Circuits':
-            router.push('/circuits');
-            break;
-          case 'Chess':
-            router.push('/chess');
-            break;
-          case 'CSC':
-            router.push('/csc');
-            break;
-          case 'Symbiosis':
-            router.push('/symbiosis');
-            break;
-          case 'Access':
-            router.push('/access');
-            break;
-          case 'STORM':
-            router.push('/storm');
-            break;
-          default:
-            break;
-        }
-      }}
-    >
-      <View style={styles.categoryBox}>
-        <Image source={category.image} style={styles.categoryImage} />
-      </View>
-      <Text style={styles.categoryText}>{category.name}</Text>
-    </TouchableOpacity>
-  ))}
-</ScrollView>
-
-      {/* Sections */}
-      <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
-        {sections.map((section, idx) => (
-          <View key={idx} style={styles.section}>
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{section.title}</Text>
-              <TouchableOpacity>
-                <View style={styles.viewAllButton}>
-                  <Text style={styles.viewAllText}>View All</Text>
-                </View>
-              </TouchableOpacity>
+        {categories.map((category, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.category}
+            activeOpacity={0.8}
+            onPress={() => {
+              switch (category.name) {
+                case 'Circuits':
+                  router.push('/circuits');
+                  break;
+                case 'Chess':
+                  router.push('/chess');
+                  break;
+                case 'Symbiosis':
+                  router.push('/symbiosis');
+                  break;
+                case 'Access':
+                  router.push('/access');
+                  break;
+                case 'STORM':
+                  router.push('/storm');
+                  break;
+                default:
+                  break;
+              }
+            }}
+          >
+            <View style={styles.categoryBox}>
+              <Image source={category.image} style={styles.categoryImage} />
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-              {section.items.map((item, i) => (
-                <TouchableOpacity key={i} style={styles.card} onPress={() => handleProductPress(item)}>
-                  <Image source={{ uri: item.image }} style={styles.cardImage} />
-                  <Text style={styles.cardTitle}>{item.title}</Text>
-                  <Text style={styles.cardDescription}>{item.description}</Text>
-                  <Text style={styles.itemPrice}>{item.price}</Text>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+            <Text style={styles.categoryText}>{category.name}</Text>
+          </TouchableOpacity>
         ))}
       </ScrollView>
 
-      {/* Modal */}
-      <Modal
-        visible={modalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            {selectedProduct && (
-              <>
-                {/* Product Image */}
-                <View style={styles.modalImageContainer}>
-                  <Image source={{ uri: selectedProduct.image }} style={styles.modalImage} />
+      {/* Sections */}
+      <ScrollView nestedScrollEnabled showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
+        {isLoading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#4776E6" />
+            <Text style={styles.loadingText}>Loading products...</Text>
+          </View>
+        ) : (
+          ['shirts', 'tote bags', 'lanyards', 'pins', 'stickers'].map((category, idx) => {
+            const featuredProducts = getFeaturedProducts(category);
+            if (featuredProducts.length === 0) return null;
+
+            return (
+              <View key={idx} style={styles.section}>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>{category.charAt(0).toUpperCase() + category.slice(1)}</Text>
+                  <TouchableOpacity onPress={() => handleViewAll(category)}>
+                    <View style={styles.viewAllButton}>
+                      <Text style={styles.viewAllText}>View All</Text>
+                    </View>
+                  </TouchableOpacity>
                 </View>
-
-                {/* Product Details */}
-                <View style={styles.modalDetailsContainer}>
-                  <Text style={styles.modalTitle}>{selectedProduct.title}</Text>
-                  <Text style={styles.modalDescription}>{selectedProduct.description}</Text>
-                  <Text style={styles.modalPrice}>{selectedProduct.price}</Text>
-                </View>
-
-                {/* Divider */}
-                <View style={styles.modalDivider} />
-
-                {/* Customer Reviews Section */}
-                <Text style={styles.reviewTitle}>Customer Reviews</Text>
-                <ScrollView style={styles.reviewContainer}>
-                  <View style={styles.reviewItem}>
-                    <Image source={Junmar} style={styles.reviewProfile} />
-                    <View style={styles.reviewContent}>
-                      <Text style={styles.reviewText}>"Great quality! Highly recommend."</Text>
-                      <Text style={styles.reviewAuthor}>- John Doe</Text>
-                    </View>
-                  </View>
-                  <View style={styles.reviewItem}>
-                    <Image source={Junmar} style={styles.reviewProfile} />
-                    <View style={styles.reviewContent}>
-                      <Text style={styles.reviewText}>"The fabric is so soft and comfortable."</Text>
-                      <Text style={styles.reviewAuthor}>- Jane Smith</Text>
-                    </View>
-                  </View>
-                  <View style={styles.reviewItem}>
-                    <Image source={Junmar} style={styles.reviewProfile} />
-                    <View style={styles.reviewContent}>
-                      <Text style={styles.reviewText}>"Worth every penny. Will buy again!"</Text>
-                      <Text style={styles.reviewAuthor}>- Alex Johnson</Text>
-                    </View>
-                  </View>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  {featuredProducts.map((item, i) => (
+                    <TouchableOpacity key={i} style={styles.card} onPress={() => handleProductPress(item)}>
+                      <Image source={{ uri: item.imageUrl || 'https://via.placeholder.com/150' }} style={styles.cardImage} />
+                      <Text style={styles.cardTitle}>{item.name}</Text>
+                      <Text style={styles.cardDescription}>{item.description}</Text>
+                      <Text style={styles.itemPrice}>₱{item.price.toFixed(2)}</Text>
+                      <Text style={styles.collegeTag}>{item.college}</Text>
+                    </TouchableOpacity>
+                  ))}
                 </ScrollView>
+              </View>
+            );
+          })
+        )}
+      </ScrollView>
 
-                {/* Buttons */}
-                <View style={styles.modalButtons}>
-                  <TouchableOpacity style={styles.modalButton} onPress={handleAddToCart}>
-                    <Text style={styles.modalButtonText}>Add to Cart</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity style={styles.modalButton} onPress={handleBuyNow}>
-                    <Text style={styles.modalButtonText}>Buy Now</Text>
-                  </TouchableOpacity>
-                </View>
+      {/* Product Modal */}
+      <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
+        <TouchableWithoutFeedback onPress={() => setModalVisible(false)}>
+          <View style={styles.modalContainer}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContent}>
+                {selectedProduct && (
+                  <>
+                    <Image source={{ uri: selectedProduct.imageUrl || 'https://via.placeholder.com/150' }} style={styles.modalImage} />
+                    <Text style={styles.modalTitle}>{selectedProduct.name}</Text>
+                    <Text style={styles.modalDescription}>{selectedProduct.description}</Text>
+                    <Text style={styles.modalPrice}>₱{selectedProduct.price.toFixed(2)}</Text>
+                    <Text style={styles.modalCollege}>{selectedProduct.college}</Text>
+                    {/* Quantity Selector */}
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginVertical: 10 }}>
+                      <TouchableOpacity
+                        onPress={() => setModalQuantity(q => Math.max(1, q - 1))}
+                        style={{ padding: 8, backgroundColor: '#eee', borderRadius: 5, marginRight: 10 }}
+                      >
+                        <Ionicons name="remove" size={20} color="#4776E6" />
+                      </TouchableOpacity>
+                      <Text style={{ fontSize: 18, fontWeight: 'bold', marginHorizontal: 10 }}>{modalQuantity}</Text>
+                      <TouchableOpacity
+                        onPress={() => setModalQuantity(q => Math.min(q + 1, selectedProduct.stock || 1))}
+                        style={{ padding: 8, backgroundColor: '#eee', borderRadius: 5, marginLeft: 10 }}
+                        disabled={modalQuantity >= (selectedProduct.stock || 1)}
+                      >
+                        <Ionicons name="add" size={20} color="#4776E6" />
+                      </TouchableOpacity>
+                      <Text style={{ marginLeft: 10, color: '#666' }}>Stock: {selectedProduct.stock || 1}</Text>
+                    </View>
+                    <View style={styles.modalButtons}>
+                      <TouchableOpacity style={styles.modalButton} onPress={handleAddToCart}>
+                        <Text style={styles.modalButtonText}>Add to Cart</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity style={styles.modalButton} onPress={handleBuyNow}>
+                        <Text style={styles.modalButtonText}>Buy Now</Text>
+                      </TouchableOpacity>
+                    </View>
+                    <TouchableOpacity style={styles.modalCancelButton} onPress={() => setModalVisible(false)}>
+                      <Text style={styles.modalCancelButtonText}>Cancel</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
 
-                {/* Cancel Button */}
-                <TouchableOpacity style={styles.modalCancelButton} onPress={() => setModalVisible(false)}>
-                  <Text style={styles.modalCancelButtonText}>Cancel</Text>
-                </TouchableOpacity>
-              </>
+      {/* Category View Modal */}
+      <Modal visible={categoryModalVisible} transparent animationType="slide" onRequestClose={() => setCategoryModalVisible(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.categoryModalContent}>
+            <View style={styles.categoryModalHeader}>
+              <Text style={styles.categoryModalTitle}>
+                {selectedCategory ? selectedCategory.charAt(0).toUpperCase() + selectedCategory.slice(1) : ''}
+              </Text>
+              <TouchableOpacity onPress={() => setCategoryModalVisible(false)}>
+                <Ionicons name="close" size={24} color="#333" />
+              </TouchableOpacity>
+            </View>
+            
+            {isCategoryLoading ? (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#4776E6" />
+                <Text style={styles.loadingText}>Loading products...</Text>
+              </View>
+            ) : categoryProducts.length === 0 ? (
+              <View style={styles.emptyContainer}>
+                <Ionicons name="alert-circle-outline" size={48} color="#888" />
+                <Text style={styles.emptyText}>No products available in this category yet.</Text>
+              </View>
+            ) : (
+              <FlatList
+                data={categoryProducts}
+                keyExtractor={(item) => item.id}
+                renderItem={({ item }) => (
+                  <TouchableOpacity style={styles.categoryProductCard} onPress={() => handleProductPress(item)}>
+                    <Image source={{ uri: item.imageUrl || 'https://via.placeholder.com/150' }} style={styles.categoryProductImage} />
+                    <View style={styles.categoryProductInfo}>
+                      <Text style={styles.categoryProductName}>{item.name}</Text>
+                      <Text style={styles.categoryProductDescription}>{item.description}</Text>
+                      <Text style={styles.categoryProductPrice}>₱{item.price.toFixed(2)}</Text>
+                      <Text style={styles.categoryProductCollege}>{item.college}</Text>
+                    </View>
+                  </TouchableOpacity>
+                )}
+                contentContainerStyle={styles.categoryProductList}
+              />
             )}
           </View>
         </View>
@@ -524,22 +649,10 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     elevation: 10, // Shadow for Android
   },
-  modalImageContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 15,
-    overflow: 'hidden', // Ensures seamless edges
-    borderRadius: 20, // Matches modal content's border radius
-  },
   modalImage: {
     width: '100%',
     height: 200,
     resizeMode: 'cover', // Ensures the image covers the container seamlessly
-  },
-  modalDetailsContainer: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 15,
   },
   modalTitle: {
     fontSize: 24,
@@ -561,69 +674,16 @@ const styles = StyleSheet.create({
     color: '#4776E6',
     marginBottom: 10,
   },
-  modalDivider: {
-    width: '100%',
-    height: 1,
-    backgroundColor: '#ddd',
-    marginVertical: 15,
-  },
-  reviewTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  reviewContainer: {
-    maxHeight: 150, // Limit the height of the review section
-    width: '100%',
-    marginBottom: 20,
-  },
-  reviewItem: {
-    flexDirection: 'row', // Align profile image and text horizontally
-    alignItems: 'flex-start',
-    marginBottom: 15,
-    paddingHorizontal: 10,
-  },
-  reviewProfile: {
-    width: 40,
-    height: 40,
-    borderRadius: 20, // Circular profile image
-    marginRight: 10,
-  },
-  reviewContent: {
-    flex: 1, // Allow the text to take up remaining space
-  },
-  reviewText: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 5,
-    textAlign: 'left', // Align text to the left
-  },
-  reviewAuthor: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'left', // Align text to the left
-  },
   modalButtons: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
     marginTop: 10,
   },
-  modalButtonPrimary: {
+  modalButton: {
     flex: 1,
     marginHorizontal: 5,
     backgroundColor: '#4776E6',
-    paddingVertical: 12,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  modalButtonSecondary: {
-    flex: 1,
-    marginHorizontal: 5,
-    backgroundColor: '#2e7d32',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
@@ -665,6 +725,100 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 2,
     color: '#333',
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  emptyText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: '#666',
+    textAlign: 'center',
+  },
+  collegeTag: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+    fontStyle: 'italic',
+  },
+  categoryModalContent: {
+    width: '90%',
+    maxHeight: '80%',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    padding: 20,
+  },
+  categoryModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  categoryModalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  categoryProductList: {
+    paddingBottom: 20,
+  },
+  categoryProductCard: {
+    flexDirection: 'row',
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 10,
+  },
+  categoryProductImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+  },
+  categoryProductInfo: {
+    flex: 1,
+    marginLeft: 10,
+    justifyContent: 'center',
+  },
+  categoryProductName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  categoryProductDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 4,
+  },
+  categoryProductPrice: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#4776E6',
+    marginBottom: 4,
+  },
+  categoryProductCollege: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+  },
+  modalCollege: {
+    fontSize: 14,
+    color: '#666',
+    fontStyle: 'italic',
+    marginBottom: 20,
   },
 });
 

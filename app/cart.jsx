@@ -1,52 +1,164 @@
 import React, { useState, useRef, useCallback, useLayoutEffect, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Animated } from 'react-native';
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, Animated, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useNavigation } from '@react-navigation/native';
-import { getAllCarts } from '@/services/addToCart';
+import { getAllCarts, removeFromCart, clearCart, addToCart } from '@/services/addToCart';
+import { createTransaction, updateProductStock } from '@/services/transactionService';
 
 const CartScreen = () => {
   const router = useRouter();
   const navigation = useNavigation();
   const [items, setItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const totalPrice = items.reduce((total, item) => total + item.price * item.quantity, 0);
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
   useEffect(() => {
-      let isMounted = true;
-      const fetchCarts = async () => {
-        try {
-          const carts = await getAllCarts();
-          if (isMounted) {
-            if (carts.length > 0) {
-              // You may want to filter for the current user's cart here
-              setItems(
-                carts[0].items.map(item => ({
-                  id: item.product?.id || item.id,
-                  title: item.product?.name || item.title,
-                  description: item.product?.description || '',
-                  price: item.product?.price || item.price,
-                  image: item.product?.image || item.image,
-                  quantity: item.quantity,
-                }))
-              );
-            } else {
-              setItems([]);
-            }
-          }
-        } catch (error) {
-          if (isMounted) {
-            console.error('Failed to fetch carts:', error);
+    let isMounted = true;
+    const fetchCarts = async () => {
+      try {
+        const carts = await getAllCarts();
+        if (isMounted) {
+          if (carts.length > 0) {
+            setItems(
+              carts[0].items.map(item => ({
+                id: item.product?.id || item.id,
+                name: item.product?.name || item.title,
+                description: item.product?.description || '',
+                price: item.product?.price || item.price,
+                imageUrl: item.product?.imageUrl || item.image,
+                quantity: item.quantity,
+                college: item.product?.college || '',
+                category: item.product?.category || ''
+              }))
+            );
+          } else {
+            setItems([]);
           }
         }
-      };
-      fetchCarts();
-      return () => {
-        isMounted = false;
-      };
-    }, []);
+      } catch (error) {
+        if (isMounted) {
+          console.error('Failed to fetch carts:', error);
+          Alert.alert('Error', 'Failed to load cart items');
+        }
+      }
+    };
+    fetchCarts();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleCheckout = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Create transaction
+      const transactionId = await createTransaction(items, totalPrice);
+      
+      // Update stock for each item
+      for (const item of items) {
+        await updateProductStock(item.college, item.category, item.id, item.quantity);
+      }
+      
+      // Clear cart after successful transaction
+      await clearCart('demo-cart-id');
+      setItems([]);
+      
+      Alert.alert(
+        'Success',
+        'Your order has been placed successfully!',
+        [
+          {
+            text: 'View Orders',
+            onPress: () => router.push('/profile')
+          },
+          {
+            text: 'Continue Shopping',
+            onPress: () => router.push('/dashboard')
+          }
+        ]
+      );
+    } catch (error) {
+      console.error('Checkout error:', error);
+      Alert.alert('Error', error.message || 'Failed to process checkout');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleIncrease = async (id) => {
+    try {
+      const updatedItems = items.map(item => 
+        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
+      );
+      setItems(updatedItems);
+      // Update cart in Firestore
+      const item = items.find(item => item.id === id);
+      if (item) {
+        await addToCart('demo-cart-id', item, 1);
+      }
+    } catch (error) {
+      console.error('Error increasing quantity:', error);
+      Alert.alert('Error', 'Failed to update quantity');
+    }
+  };
+
+  const handleDecrease = async (id) => {
+    try {
+      const item = items.find(item => item.id === id);
+      if (item && item.quantity > 1) {
+        const updatedItems = items.map(item => 
+          item.id === id ? { ...item, quantity: item.quantity - 1 } : item
+        );
+        setItems(updatedItems);
+        // Update cart in Firestore
+        await removeFromCart('demo-cart-id', id);
+        await addToCart('demo-cart-id', item, -1);
+      }
+    } catch (error) {
+      console.error('Error decreasing quantity:', error);
+      Alert.alert('Error', 'Failed to update quantity');
+    }
+  };
+
+  const handleRemove = async (id) => {
+    try {
+      await removeFromCart('demo-cart-id', id);
+      setItems(items.filter(item => item.id !== id));
+    } catch (error) {
+      console.error('Error removing item:', error);
+      Alert.alert('Error', 'Failed to remove item from cart');
+    }
+  };
+
+  const renderCartItem = ({ item }) => (
+    <View style={styles.cartItem}>
+      <Image source={{ uri: item.imageUrl || 'https://via.placeholder.com/150' }} style={styles.itemImage} />
+      <View style={styles.itemDetails}>
+        <Text style={styles.itemName}>{item.name}</Text>
+        <Text style={styles.itemDescription}>{item.description}</Text>
+        <Text style={styles.itemPrice}>₱{item.price.toFixed(2)}</Text>
+        <Text style={styles.itemCollege}>{item.college}</Text>
+        <View style={styles.quantityContainer}>
+          <TouchableOpacity onPress={() => handleDecrease(item.id)} style={styles.quantityButton}>
+            <Ionicons name="remove" size={20} color="#4776E6" />
+          </TouchableOpacity>
+          <Text style={styles.quantity}>{item.quantity}</Text>
+          <TouchableOpacity onPress={() => handleIncrease(item.id)} style={styles.quantityButton}>
+            <Ionicons name="add" size={20} color="#4776E6" />
+          </TouchableOpacity>
+        </View>
+      </View>
+      <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeButton}>
+        <Ionicons name="trash-outline" size={24} color="#FF3B30" />
+      </TouchableOpacity>
+    </View>
+  );
 
   // Animation references for bottom navigation
   const scaleHome = useRef(new Animated.Value(1)).current;
@@ -84,48 +196,14 @@ const CartScreen = () => {
     if (route) router.push(route);
   };
 
-  const handleIncrease = (id) => {
-    setItems(items.map(item => item.id === id ? { ...item, quantity: item.quantity + 1 } : item));
-  };
-
-  const handleDecrease = (id) => {
-    setItems(items.map(item => item.id === id && item.quantity > 1 ? { ...item, quantity: item.quantity - 1 } : item));
-  };
-
-  const handleRemove = (id) => {
-    setItems(items.filter(item => item.id !== id));
-  };
-
-  const renderCartItem = useCallback(({ item }) => (
-    <View style={styles.cartItem}>
-      <Image source={{ uri: item.image }} style={styles.cartImage} />
-      <View style={styles.itemDetails}>
-        <Text style={styles.itemTitle}>{item.title}</Text>
-        <Text style={styles.itemDescription}>{item.description}</Text>
-        <Text style={styles.itemPrice}>₱{item.price}</Text>
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity onPress={() => handleDecrease(item.id)}>
-            <Ionicons name="remove-circle" size={24} color="#4776E6" />
-          </TouchableOpacity>
-          <Text style={styles.quantityText}>{item.quantity}</Text>
-          <TouchableOpacity onPress={() => handleIncrease(item.id)}>
-            <Ionicons name="add-circle" size={24} color="#4776E6" />
-          </TouchableOpacity>
-        </View>
-        <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeButton}>
-          <Ionicons name="trash" size={20} color="white" />
-        </TouchableOpacity>
-      </View>
-    </View>
-  ), [items]);
-
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => router.push('/dashboard')}>
+          <Ionicons name="arrow-back" size={28} color="white" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Your Cart</Text>
+        <Text style={styles.title}>My Cart</Text>
       </View>
 
       {/* Cart Items */}
@@ -152,13 +230,16 @@ const CartScreen = () => {
       {/* Total and Checkout */}
       {items.length > 0 && (
         <View style={styles.totalContainer}>
-          <Text style={styles.totalText}>Total: ₱{totalPrice}</Text>
+          <Text style={styles.totalText}>Total: ₱{totalPrice.toFixed(2)}</Text>
           <TouchableOpacity
-            style={[styles.checkoutButton, { opacity: items.length > 0 ? 1 : 0.5 }]}
-            disabled={items.length === 0}
+            style={[styles.checkoutButton, { opacity: isLoading ? 0.5 : 1 }]}
+            disabled={isLoading}
+            onPress={handleCheckout}
           >
             <View style={styles.checkoutSolid}>
-              <Text style={styles.checkoutText}>Checkout</Text>
+              <Text style={styles.checkoutText}>
+                {isLoading ? 'Processing...' : 'Checkout'}
+              </Text>
             </View>
           </TouchableOpacity>
         </View>
@@ -366,6 +447,30 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 14,
     fontWeight: 'bold',
+  },
+  itemCollege: {
+    fontSize: 12,
+    color: '#666',
+    fontStyle: 'italic',
+    marginBottom: 4,
+  },
+  itemImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    marginLeft: 10,
+    marginTop: 35,
   },
 });
 

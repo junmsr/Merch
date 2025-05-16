@@ -17,6 +17,13 @@ import { LineChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { addProduct, updateProduct, deleteProduct, fetchProducts, fetchAllColleges, fetchCategoriesForCollege } from '../services/productService';
+import IT from '../assets/images/IT.png';
+import CHEM from '../assets/images/CHEM.png';
+import BIO from '../assets/images/BIO.png';
+import CS from '../assets/images/CS.png';
+import STORM from '../assets/images/STORM.png';
+import { getDocs, collection, query, where } from 'firebase/firestore';
+import { db } from '../services/firebase.config';
 
 const AdminDashboard = () => {
   const navigation = useNavigation();
@@ -45,6 +52,24 @@ const AdminDashboard = () => {
   const [collegeOptions, setCollegeOptions] = useState([]);
   const [categoryOptions, setCategoryOptions] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // College logo mapping
+  const collegeLogos = {
+    circuits: IT,
+    access: CS,
+    symbiosis: BIO,
+    storm: STORM,
+    chess: CHEM,
+  };
+
+  // Sales summary state
+  const [salesSummary, setSalesSummary] = useState({
+    totalProducts: 0,
+    totalRevenue: 0,
+    totalCost: 0,
+    totalProfit: 0,
+    monthlySales: Array(12).fill(0),
+  });
 
   useLayoutEffect(() => {
     const loadOptions = async () => {
@@ -318,6 +343,48 @@ const AdminDashboard = () => {
     setViewingCategoryId(itemValue);
   };
 
+  // Fetch transactions and compute sales summary
+  useEffect(() => {
+    const fetchSalesSummary = async () => {
+      if (!selectedCollegeId) return;
+      try {
+        const q = query(collection(db, 'transactions'), where('items', '!=', []));
+        const snapshot = await getDocs(q);
+        let totalProducts = 0;
+        let totalRevenue = 0;
+        let totalCost = 0;
+        let monthlySales = Array(12).fill(0);
+        snapshot.forEach(doc => {
+          const data = doc.data();
+          if (data.status !== 'completed') return;
+          if (!data.items) return;
+          data.items.forEach(item => {
+            if (item.college === selectedCollegeId) {
+              totalProducts += item.quantity;
+              totalRevenue += item.price * item.quantity;
+              totalCost += (item.cost || 0) * item.quantity;
+              // Monthly sales
+              const month = data.createdAt && data.createdAt.toDate ? data.createdAt.toDate().getMonth() : null;
+              if (month !== null) {
+                monthlySales[month] += item.price * item.quantity;
+              }
+            }
+          });
+        });
+        setSalesSummary({
+          totalProducts,
+          totalRevenue,
+          totalCost,
+          totalProfit: totalRevenue - totalCost,
+          monthlySales,
+        });
+      } catch (e) {
+        console.error('Error fetching sales summary:', e);
+      }
+    };
+    fetchSalesSummary();
+  }, [selectedCollegeId]);
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -334,7 +401,7 @@ const AdminDashboard = () => {
               <Picker
               selectedValue={selectedCollegeId}
               onValueChange={handleCollegeChange}
-              style={styles.picker}
+              style={[styles.picker, { backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#ccc', marginBottom: 8 }]}
               enabled={!adminAssignedCollege && collegeOptions.length > 0}
               >
               {collegeOptions.map(college => (
@@ -347,7 +414,7 @@ const AdminDashboard = () => {
               <Picker
               selectedValue={viewingCategoryId}
               onValueChange={handleCategoryChange}
-              style={styles.picker}
+              style={[styles.picker, { backgroundColor: '#fff', borderRadius: 8, borderWidth: 1, borderColor: '#ccc', marginBottom: 8 }]}
               enabled={categoryOptions.length > 0}
               >
               {categoryOptions.map(category => (
@@ -359,17 +426,19 @@ const AdminDashboard = () => {
 
         <View style={styles.profileSection}>
           <Image
-            source={require('../assets/images/IT.png')}
+            source={collegeLogos[selectedCollegeId] || IT}
             style={styles.profileBackground}
           />
           <View style={styles.profileContent}>
             <Image
-              source={require('../assets/images/IT.png')}
+              source={collegeLogos[selectedCollegeId] || IT}
               style={styles.avatar}
             />
             <View>
-              <Text style={styles.profileTitle}>{selectedCollegeId ? selectedCollegeId.charAt(0).toUpperCase() + selectedCollegeId.slice(1) : 'Admin'} Dashboard</Text>
-              <Text style={styles.profileSubtitle}>
+              <Text style={styles.profileTitle} numberOfLines={2} adjustsFontSizeToFit>
+                {selectedCollegeId ? selectedCollegeId.charAt(0).toUpperCase() + selectedCollegeId.slice(1) : 'Admin'} Dashboard
+              </Text>
+              <Text style={styles.profileSubtitle} numberOfLines={2} adjustsFontSizeToFit>
                 Managing products for {selectedCollegeId ? selectedCollegeId.charAt(0).toUpperCase() + selectedCollegeId.slice(1) : 'selected college'}
               </Text>
             </View>
@@ -380,22 +449,22 @@ const AdminDashboard = () => {
         <View style={styles.dashboardCards}>
           <View style={styles.cardRow}>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Total Products</Text>
-              <Text style={styles.cardValue}>{products.length}</Text>
+              <Text style={styles.cardTitle}>Total Products Sold</Text>
+              <Text style={styles.cardValue}>{salesSummary.totalProducts}</Text>
             </View>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Total Revenue</Text>
-              <Text style={styles.cardValue}>₱{totalRevenue.toFixed(2)}</Text>
+              <Text style={styles.cardValue}>₱{salesSummary.totalRevenue.toFixed(2)}</Text>
             </View>
           </View>
           <View style={styles.cardRow}>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Total Cost</Text>
-              <Text style={styles.cardValue}>₱{totalCost.toFixed(2)}</Text>
+              <Text style={styles.cardValue}>₱{salesSummary.totalCost.toFixed(2)}</Text>
             </View>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Total Profit</Text>
-              <Text style={styles.cardValue}>₱{totalProfit.toFixed(2)}</Text>
+              <Text style={styles.cardValue}>₱{salesSummary.totalProfit.toFixed(2)}</Text>
             </View>
           </View>
         </View>
@@ -403,7 +472,15 @@ const AdminDashboard = () => {
         <View style={styles.chartSection}>
           <Text style={styles.chartTitle}>Sales Summary</Text>
           <LineChart
-            data={salesData}
+            data={{
+              labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+              datasets: [
+                {
+                  data: salesSummary.monthlySales,
+                  strokeWidth: 2,
+                },
+              ],
+            }}
             width={screenWidth - 32}
             height={220}
             chartConfig={{
@@ -624,11 +701,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     elevation: 3,
+    minHeight: 70,
   },
   headerTitle: {
     color: 'white',
     fontSize: 20,
     fontWeight: 'bold',
+    flex: 1,
+    flexWrap: 'wrap',
+    textAlign: 'left',
+    marginRight: 10,
+    minHeight: 30,
   },
   profileSection: {
     backgroundColor: '#e3f2fd',
@@ -664,10 +747,21 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     color: '#1e88e5',
+    flexWrap: 'wrap',
+    maxWidth: 220,
+    marginBottom: 2,
+    lineHeight: 28,
+    textAlign: 'left',
+    numberOfLines: 2,
   },
   profileSubtitle: {
     fontSize: 16,
     color: '#555',
+    flexWrap: 'wrap',
+    maxWidth: 220,
+    lineHeight: 20,
+    marginBottom: 2,
+    textAlign: 'left',
   },
   profileTagline: {
     fontSize: 14,
@@ -715,11 +809,13 @@ const styles = StyleSheet.create({
   },
   chartSection: {
     backgroundColor: '#fff',
-    padding: -1,
+    padding: 10,
     marginHorizontal: 16,
     marginBottom: 20,
-    borderRadius: 10,
+    borderRadius: 16,
     elevation: 2,
+    overflow: 'hidden',
+    minHeight: 260,
   },
   chartTitle: {
     fontSize: 18,
@@ -886,23 +982,32 @@ const styles = StyleSheet.create({
   },
   pickerContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 18,
     backgroundColor: '#fff',
     borderBottomWidth: 1,
     borderBottomColor: '#eee',
+    flexWrap: 'wrap',
+    minHeight: 70,
   },
   pickerWrapper: {
     flex: 1,
     marginHorizontal: 5,
+    minWidth: 140,
+    paddingBottom: 10,
   },
   pickerLabel: {
     fontSize: 12,
     color: '#555',
     marginBottom: 2,
+    flexWrap: 'wrap',
   },
   picker: {
-    height: 40,
-  }
+    height: 44,
+    minWidth: 120,
+    maxWidth: '100%',
+    flexGrow: 1,
+  },
 });
