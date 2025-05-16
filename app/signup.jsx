@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, ScrollView, Animated, Easing, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Dimensions, ScrollView, Animated, Easing, Alert, Modal } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -24,7 +24,9 @@ const SignupScreen = () => {
   const [passwordVisible, setPasswordVisible] = useState(false);
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [successModalVisible, setSuccessModalVisible] = useState(false);
+  const [loading, setLoading] = useState(false);
   
+
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
@@ -33,6 +35,7 @@ const SignupScreen = () => {
   const logoOpacity = useRef(new Animated.Value(0)).current;
   const inputCardTranslateY = useRef(new Animated.Value(50)).current;
   const buttonScale = useRef(new Animated.Value(1)).current;
+  const loadingScale = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
     Animated.parallel([
@@ -50,7 +53,31 @@ const SignupScreen = () => {
     ]).start();
   }, []);
 
+  useEffect(() => {
+    if (loading) {
+      Animated.loop(
+        Animated.sequence([
+          Animated.timing(loadingScale, {
+            toValue: 1.2,
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+          Animated.timing(loadingScale, {
+            toValue: 1,
+            duration: 500,
+            easing: Easing.inOut(Easing.ease),
+            useNativeDriver: true,
+          }),
+        ])
+      ).start();
+    } else {
+      loadingScale.setValue(1);
+    }
+  }, [loading]);
+
   const handleSignup = async () => {
+    setLoading(true);
     if (password !== confirmPassword) {
       Alert.alert('Error', 'Passwords do not match');
       return;
@@ -91,8 +118,22 @@ const SignupScreen = () => {
       // Check for specific Firebase Auth error codes if needed (e.g., 'auth/email-already-in-use')
       // console.error("Signup Error Full:", err); // For debugging
       Alert.alert('Sign Up Error', errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <Animated.Image
+          source={logoImage}
+          style={[styles.loadingLogo, { transform: [{ scale: loadingScale }] }]}
+        />
+        <Text style={styles.loadingText}>Creating account...</Text>
+      </View>
+    );
+  }
 
   return (
     <LinearGradient colors={['#4776E6', '#fff']} style={styles.gradient}>
@@ -363,7 +404,23 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
-  }
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+  },
+  loadingLogo: {
+    width: 120,
+    height: 120,
+    marginBottom: 20,
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#4776E6',
+    fontWeight: 'bold',
+  },
 });
 
 export default SignupScreen; 
