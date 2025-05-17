@@ -144,15 +144,7 @@ const CartScreen = () => {
         <Text style={styles.itemDescription}>{item.description}</Text>
         <Text style={styles.itemPrice}>₱{item.price.toFixed(2)}</Text>
         <Text style={styles.itemCollege}>{item.college}</Text>
-        <View style={styles.quantityContainer}>
-          <TouchableOpacity onPress={() => handleDecrease(item.id)} style={styles.quantityButton}>
-            <Ionicons name="remove" size={20} color="#4776E6" />
-          </TouchableOpacity>
-          <Text style={styles.quantity}>{item.quantity}</Text>
-          <TouchableOpacity onPress={() => handleIncrease(item.id)} style={styles.quantityButton}>
-            <Ionicons name="add" size={20} color="#4776E6" />
-          </TouchableOpacity>
-        </View>
+        <View style={styles.quantityContainer}></View>
       </View>
       <TouchableOpacity onPress={() => handleRemove(item.id)} style={styles.removeButton}>
         <Ionicons name="trash-outline" size={24} color="#FF3B30" />
